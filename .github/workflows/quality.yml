@@ -1,0 +1,98 @@
+name: Phase 1 quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase-1-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Python and PostgreSQL
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:18.4-bookworm
+        env:
+          POSTGRES_DB: homesearch
+          POSTGRES_PASSWORD: homesearch-ci-only
+          POSTGRES_USER: homesearch
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready --username=homesearch --dbname=homesearch"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      HOMESEARCH_TEST_DATABASE_URL: postgresql+psycopg://homesearch:homesearch-ci-only@127.0.0.1:5432/postgres
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Python and uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.0"
+          python-version: "3.14.6"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+          cache-python: true
+
+      - name: Sync locked dependencies
+        run: uv sync --locked --all-groups
+
+      - name: Check formatting
+        run: uv run ruff format --check .
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Type check
+        run: uv run mypy
+
+      - name: Migrate empty database
+        env:
+          HOMESEARCH_PROFILE_PATH: config/profiles/example.toml
+          HOMESEARCH_DATABASE_URL: postgresql+psycopg://homesearch:homesearch-ci-only@127.0.0.1:5432/homesearch
+        run: |
+          uv run alembic upgrade head
+          uv run alembic current
+          uv run alembic check
+
+      - name: Run unit and PostgreSQL integration tests
+        run: uv run pytest
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out complete history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan repository history
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITLEAKS_ENABLE_COMMENTS: "false"
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+          GITLEAKS_VERSION: "8.30.1"
