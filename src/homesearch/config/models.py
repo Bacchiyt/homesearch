@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import (
+    UUID7,
     AwareDatetime,
     BaseModel,
     ConfigDict,
@@ -84,10 +85,33 @@ class SecretReference(StrictConfigurationModel):
     required: bool = True
 
 
+class UserConfiguration(StrictConfigurationModel):
+    """Non-secret identity for the one approved logical user."""
+
+    user_id: UUID7
+
+
+class UserScopeConfiguration(StrictConfigurationModel):
+    """Explicit default user without introducing authentication or tenancy."""
+
+    default_user_id: UUID7
+    users: tuple[UserConfiguration, ...]
+
+    @model_validator(mode="after")
+    def require_one_referenced_default_user(self) -> UserScopeConfiguration:
+        """Enforce ADR 0007's initial one-user scope and explicit default."""
+
+        if len(self.users) != 1:
+            raise ValueError("initial user scope must define exactly one user")
+        if self.users[0].user_id != self.default_user_id:
+            raise ValueError("default_user_id must reference the configured user")
+        return self
+
+
 class VersionedConfiguration(StrictConfigurationModel):
     """Shared version and identity metadata for tracked configuration."""
 
-    schema_version: Literal[1]
+    schema_version: Literal[2]
     config_id: StableId
     config_version: PositiveInt
     effective_from: AwareDatetime
@@ -105,6 +129,7 @@ class VersionedConfiguration(StrictConfigurationModel):
 class SafeConfiguration(VersionedConfiguration):
     """Effective secret-free application configuration."""
 
+    user_scope: UserScopeConfiguration
     runtime: RuntimeConfiguration
     secret_references: tuple[SecretReference, ...] = ()
 
@@ -126,6 +151,7 @@ class SafeConfiguration(VersionedConfiguration):
 class ProfileConfiguration(VersionedConfiguration):
     """Versioned, tracked overlay selected explicitly by the operator."""
 
+    user_scope: UserScopeConfiguration | None = None
     runtime: RuntimeOverrides | None = None
     secret_references: tuple[SecretReference, ...] | None = None
 

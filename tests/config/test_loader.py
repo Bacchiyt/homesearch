@@ -17,6 +17,8 @@ from homesearch.config import (
 )
 
 DEFAULTS = Path("config/defaults.toml")
+DEFAULT_USER_ID = "019fb31c-0022-70cf-afee-7644241d7ba8"
+PROFILE_USER_ID = "019fb31c-545a-7073-8899-2b73e89d99c8"
 
 
 def _write_toml(path: Path, content: str) -> Path:
@@ -32,14 +34,83 @@ def test_repository_defaults_load_with_a_stable_digest() -> None:
     loaded_once = load_configuration(_settings(DEFAULTS))
     loaded_again = load_configuration(_settings(DEFAULTS))
 
-    assert loaded_once.configuration.schema_version == 1
+    assert loaded_once.configuration.schema_version == 2
     assert loaded_once.configuration.config_id == "homesearch-default"
     assert loaded_once.configuration.config_version == 1
+    assert str(loaded_once.configuration.user_scope.default_user_id) == DEFAULT_USER_ID
+    assert len(loaded_once.configuration.user_scope.users) == 1
+    assert loaded_once.configuration.user_scope.users[0].user_id.version == 7
     assert loaded_once.configuration.runtime.log_level is LogLevel.INFO
     assert loaded_once.configuration.runtime.log_format is LogFormat.JSON
     assert loaded_once.digest == loaded_again.digest
     assert loaded_once.digest.startswith("sha256:")
     assert len(loaded_once.digest) == 71
+
+
+@pytest.mark.parametrize(
+    "user_scope",
+    [
+        "",
+        """
+        [user_scope]
+        default_user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
+        users = []
+        """,
+        """
+        [user_scope]
+        default_user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
+
+        [[user_scope.users]]
+        user_id = "019fb31c-545a-7073-8899-2b73e89d99c8"
+        """,
+        """
+        [user_scope]
+        default_user_id = "7b259146-cb4f-4fdf-9301-72c6eb0d16fc"
+
+        [[user_scope.users]]
+        user_id = "7b259146-cb4f-4fdf-9301-72c6eb0d16fc"
+        """,
+        """
+        [user_scope]
+        default_user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
+
+        [[user_scope.users]]
+        user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
+
+        [[user_scope.users]]
+        user_id = "019fb31c-545a-7073-8899-2b73e89d99c8"
+        """,
+    ],
+    ids=[
+        "missing-scope",
+        "zero-users",
+        "mismatched-default",
+        "non-uuidv7",
+        "multiple-users",
+    ],
+)
+def test_invalid_initial_user_scope_fails_before_work_starts(
+    tmp_path: Path,
+    user_scope: str,
+) -> None:
+    base = _write_toml(
+        tmp_path / "base.toml",
+        f"""
+        schema_version = 2
+        config_id = "base"
+        config_version = 1
+        effective_from = 2026-07-30T00:00:00Z
+
+        {user_scope}
+
+        [runtime]
+        log_level = "INFO"
+        log_format = "json"
+        """,
+    )
+
+    with pytest.raises(ConfigurationError, match="Invalid configuration"):
+        load_configuration(_settings(base))
 
 
 @pytest.mark.parametrize("filename", ["missing.toml", "invalid.toml"])
@@ -62,10 +133,16 @@ def test_layers_apply_in_the_documented_precedence(
     base = _write_toml(
         tmp_path / "base.toml",
         """
-        schema_version = 1
+        schema_version = 2
         config_id = "base"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
+
+        [user_scope]
+        default_user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
+
+        [[user_scope.users]]
+        user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
 
         [runtime]
         log_level = "INFO"
@@ -75,7 +152,7 @@ def test_layers_apply_in_the_documented_precedence(
     profile = _write_toml(
         tmp_path / "profile.toml",
         """
-        schema_version = 1
+        schema_version = 2
         config_id = "profile"
         config_version = 2
         effective_from = 2026-07-31T00:00:00Z
@@ -109,6 +186,32 @@ def test_layers_apply_in_the_documented_precedence(
     assert overridden.configuration.runtime.log_format is LogFormat.JSON
 
 
+def test_versioned_profile_can_replace_the_explicit_default_user(
+    tmp_path: Path,
+) -> None:
+    profile = _write_toml(
+        tmp_path / "profile.toml",
+        """
+        schema_version = 2
+        config_id = "alternate-user-profile"
+        config_version = 1
+        effective_from = 2026-07-31T00:00:00Z
+
+        [user_scope]
+        default_user_id = "019fb31c-545a-7073-8899-2b73e89d99c8"
+
+        [[user_scope.users]]
+        user_id = "019fb31c-545a-7073-8899-2b73e89d99c8"
+        """,
+    )
+
+    defaults = load_configuration(_settings(DEFAULTS))
+    profiled = load_configuration(_settings(DEFAULTS, profile_path=profile))
+
+    assert str(profiled.configuration.user_scope.default_user_id) == PROFILE_USER_ID
+    assert profiled.digest != defaults.digest
+
+
 def test_ignored_dotenv_supplies_allowlisted_settings_and_secrets(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -117,7 +220,7 @@ def test_ignored_dotenv_supplies_allowlisted_settings_and_secrets(
     profile = _write_toml(
         tmp_path / "profile.toml",
         """
-        schema_version = 1
+        schema_version = 2
         config_id = "dotenv-profile"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -160,7 +263,7 @@ def test_explicit_operational_settings_ignore_environment_and_dotenv(
     ambient_profile = _write_toml(
         tmp_path / "ambient-profile.toml",
         """
-        schema_version = 1
+        schema_version = 2
         config_id = "ambient-profile"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -208,11 +311,17 @@ def test_explicit_operational_settings_ignore_environment_and_dotenv(
         (
             "base.toml",
             """
-            schema_version = 1
+            schema_version = 2
             config_id = "base"
             config_version = 1
             effective_from = 2026-07-30T00:00:00Z
             unexpected = true
+
+            [user_scope]
+            default_user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
+
+            [[user_scope.users]]
+            user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
 
             [runtime]
             log_level = "INFO"
@@ -223,7 +332,7 @@ def test_explicit_operational_settings_ignore_environment_and_dotenv(
         (
             "profile.toml",
             """
-            schema_version = 1
+            schema_version = 2
             config_id = "profile"
             config_version = 1
             effective_from = 2026-07-30T00:00:00Z
@@ -234,7 +343,11 @@ def test_explicit_operational_settings_ignore_environment_and_dotenv(
         (
             "local.toml",
             """
-            config_id = "not-allowed-locally"
+            [user_scope]
+            default_user_id = "019fb31c-545a-7073-8899-2b73e89d99c8"
+
+            [[user_scope.users]]
+            user_id = "019fb31c-545a-7073-8899-2b73e89d99c8"
             """,
             {"local_config_path": "local.toml"},
         ),
@@ -249,10 +362,16 @@ def test_unknown_fields_are_rejected_in_every_layer(
     base = _write_toml(
         tmp_path / "base.toml",
         """
-        schema_version = 1
+        schema_version = 2
         config_id = "base"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
+
+        [user_scope]
+        default_user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
+
+        [[user_scope.users]]
+        user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
 
         [runtime]
         log_level = "INFO"
@@ -271,7 +390,7 @@ def test_unknown_fields_are_rejected_in_every_layer(
 @pytest.mark.parametrize(
     "invalid_line",
     [
-        "schema_version = 2",
+        "schema_version = 1",
         'config_id = "UPPERCASE"',
         "config_version = 0",
         "effective_from = 2026-07-30T09:00:00+09:00",
@@ -282,7 +401,7 @@ def test_invalid_version_metadata_fails_before_work_starts(
     invalid_line: str,
 ) -> None:
     values = {
-        "schema_version": "schema_version = 1",
+        "schema_version": "schema_version = 2",
         "config_id": 'config_id = "base"',
         "config_version": "config_version = 1",
         "effective_from": "effective_from = 2026-07-30T00:00:00Z",
@@ -296,6 +415,12 @@ def test_invalid_version_metadata_fails_before_work_starts(
         {values["config_id"]}
         {values["config_version"]}
         {values["effective_from"]}
+
+        [user_scope]
+        default_user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
+
+        [[user_scope.users]]
+        user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
 
         [runtime]
         log_level = "INFO"
@@ -311,7 +436,7 @@ def test_required_secret_reference_must_resolve(tmp_path: Path) -> None:
     profile = _write_toml(
         tmp_path / "profile.toml",
         """
-        schema_version = 1
+        schema_version = 2
         config_id = "database-profile"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -334,7 +459,7 @@ def test_duplicate_secret_references_are_rejected(tmp_path: Path) -> None:
     profile = _write_toml(
         tmp_path / "profile.toml",
         """
-        schema_version = 1
+        schema_version = 2
         config_id = "database-profile"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -360,7 +485,7 @@ def test_secret_values_are_redacted_and_excluded_from_digest(tmp_path: Path) -> 
     profile = _write_toml(
         tmp_path / "profile.toml",
         """
-        schema_version = 1
+        schema_version = 2
         config_id = "database-profile"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -401,10 +526,16 @@ def test_digest_is_independent_of_toml_key_order(tmp_path: Path) -> None:
     first = _write_toml(
         tmp_path / "first.toml",
         """
-        schema_version = 1
+        schema_version = 2
         config_id = "same"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
+
+        [user_scope]
+        default_user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
+
+        [[user_scope.users]]
+        user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
 
         [runtime]
         log_level = "INFO"
@@ -417,7 +548,13 @@ def test_digest_is_independent_of_toml_key_order(tmp_path: Path) -> None:
         effective_from = 2026-07-30T00:00:00Z
         config_version = 1
         config_id = "same"
-        schema_version = 1
+        schema_version = 2
+
+        [user_scope]
+        default_user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
+
+        [[user_scope.users]]
+        user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
 
         [runtime]
         log_format = "json"
@@ -438,7 +575,9 @@ def test_environment_cannot_override_unlisted_policy_fields(
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("HOMESEARCH_CONFIG_PATH", str(defaults))
     monkeypatch.setenv("HOMESEARCH_CONFIG_VERSION", "999")
+    monkeypatch.setenv("HOMESEARCH_DEFAULT_USER_ID", PROFILE_USER_ID)
 
     loaded = load_configuration()
 
     assert loaded.configuration.config_version == 1
+    assert str(loaded.configuration.user_scope.default_user_id) == DEFAULT_USER_ID

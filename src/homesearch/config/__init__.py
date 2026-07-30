@@ -11,6 +11,8 @@ from homesearch.config.models import (
     LogLevel,
     OperationalSettings,
     SafeConfiguration,
+    UserConfiguration,
+    UserScopeConfiguration,
 )
 
 __all__ = [
@@ -20,6 +22,8 @@ __all__ = [
     "LogLevel",
     "OperationalSettings",
     "SafeConfiguration",
+    "UserConfiguration",
+    "UserScopeConfiguration",
     "load_configuration",
     "load_operational_settings",
 ]
