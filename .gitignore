@@ -17,4 +17,5 @@ dist/
 .env
 .env.*
 !.env.example
+config/local.toml
 var/

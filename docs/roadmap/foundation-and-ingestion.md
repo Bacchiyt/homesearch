@@ -37,7 +37,7 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 
 **Authorization:** Gate A passed and this phase may begin. No Phase 1 implementation is included in the Gate A acceptance change.
 
-**Progress:** the first independently reviewed task bootstraps the Python 3.14/uv package and local lint, format, type, and test commands. Configuration, persistence, migrations, Compose, and CI remain separate follow-up tasks.
+**Progress:** independently reviewed tasks now provide the Python 3.14/uv package and local quality commands, followed by the strict versioned configuration-loading foundation with layered safe TOML, narrow operational overrides, secret references, and a canonical secret-free digest. Domain-specific policy sections, persistence, migrations, Compose, structured logging, and CI remain separate follow-up tasks.
 
 **Deliverables:**
 
