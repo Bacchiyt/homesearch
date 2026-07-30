@@ -4,16 +4,16 @@ Homesearch is a personal system for discovering, normalizing, enriching, evaluat
 
 ## Current implementation scope
 
-Phase 1 currently provides the Python project/toolchain bootstrap, versioned configuration, the synchronous PostgreSQL connection boundary, a local PostgreSQL 18.4 Docker Compose service, a migration-backed initial schema, matching SQLAlchemy Core metadata, and an explicit transaction boundary for the first configuration-persistence use case. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults define one explicit non-secret UUIDv7 user plus empty source and search registries; no source or search is configured, and no source is authorized for access.
+Phase 1 currently provides the Python project/toolchain bootstrap, versioned configuration, the synchronous PostgreSQL connection boundary, a local PostgreSQL 18.4 Docker Compose service, a migration-backed initial schema, matching SQLAlchemy Core metadata, an explicit transaction boundary for the first configuration-persistence use case, and GitHub Actions quality/secret-scanning gates. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults define one explicit non-secret UUIDv7 user plus empty source and search registries; no source or search is configured, and no source is authorized for access.
 
-Property/listing/run repositories and workflows, CI, authentication, destinations, source adapters, polling/scheduler behavior, tracking schedules, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
+Property/listing/run repositories and workflows, structured logging, authentication, destinations, source adapters, polling/scheduler behavior, tracking schedules, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
 
 ## Local setup
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/). The project pins CPython 3.14.6 in `.python-version`; uv can install that interpreter when it is not already available.
 
 ```shell
-uv sync --locked
+uv sync --locked --all-groups
 ```
 
 The tracked defaults load without secrets:
@@ -151,6 +151,24 @@ uv run ruff format --check .
 uv run ruff check .
 uv run mypy
 uv run pytest
+```
+
+## Continuous integration
+
+`.github/workflows/quality.yml` runs for pull requests, pushes to `main`, and manual dispatch. Its least-privilege jobs:
+
+- reproduce Python 3.14.6 and uv 0.12.0 from the locked project;
+- run formatting, lint, strict typing, and the complete pytest suite;
+- migrate an empty PostgreSQL 18.4 service database, report the revision, and check for schema/mapping drift;
+- run PostgreSQL integration tests against disposable databases; and
+- scan repository history with Gitleaks 8.30.1.
+
+External actions are pinned by full commit SHA. The PostgreSQL password and URLs in the workflow are fixed, ephemeral CI-only values for the isolated service container; they are not credentials for any external system. CI has no live-source, provider, deployment, or production access.
+
+The Python, migration, and test commands above are the local equivalents of the main CI job. To reproduce the secret gate with Gitleaks 8.30.1 installed locally:
+
+```shell
+gitleaks git --redact --no-banner
 ```
 
 The environment is project-local and disposable. Do not commit `.venv`, local configuration, secrets, generated artifacts, or runtime data.
