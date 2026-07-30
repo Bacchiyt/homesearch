@@ -91,6 +91,7 @@ The second revision adds only the first Phase 2 ingestion evidence path:
 
 - a normalized, source-scoped listing identity key;
 - source runs tied to the existing polling run, configured source, and search identity/version;
+- durable source-run/observation receipts, separate from immutable evidence identity;
 - provider-neutral raw-object metadata without storing payload bytes in relational rows;
 - immutable observation metadata and content/idempotency fingerprints;
 - versioned parse runs; and
@@ -161,7 +162,7 @@ The snapshot document is built from `SafeConfiguration`, never `resolved_secrets
 - one immutable observation and versioned parse result; and
 - four provenance-linked source facts from the synthetic fixture.
 
-Repeated execution returns the original durable receipt and does not duplicate runs, listings, observations, parse results, raw-object metadata, or facts. Run the complete vertical-slice test against the disposable PostgreSQL workflow:
+Exact repeated execution returns the original durable receipt and does not duplicate runs, listings, observations, parse results, raw-object metadata, or facts. When distinct valid configuration/search contexts ingest the same evidence, each source run receives its own durable observation receipt while the immutable observation, parse result, raw-object metadata, and facts remain deduplicated. Run the complete vertical-slice test against the disposable PostgreSQL workflow:
 
 ```shell
 export HOMESEARCH_TEST_DATABASE_URL="$HOMESEARCH_DATABASE_URL"

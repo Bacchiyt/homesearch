@@ -36,9 +36,17 @@ Areas may be administrative regions, polygons, or explicit mappings. Source-spec
 
 **Purpose:** immutable record of what was received at one source/listing observation.
 
-**Important fields:** `observation_id`, listing/source, observed/recorded time, fetch/run IDs, requested/final URL, HTTP/status/content metadata, latency, outcome/page classification, capture mode, object reference/hash/size/media type, retention/expiry/compliance reference, replay eligibility, and correlation/idempotency fingerprint.
+**Important fields:** `observation_id`, listing/source, observed/recorded time, requested/final URL, HTTP/status/content metadata, latency, outcome/page classification, capture mode, object reference/hash/size/media type, retention/expiry/compliance reference, replay eligibility, and evidence idempotency fingerprint.
 
 **History:** append-only. Later observations never update earlier ones. Body expiry updates lifecycle state or adds a retention event without deleting durable observation identity/provenance.
+
+## `SourceRunObservation`
+
+**Purpose:** append-only receipt that records which source run observed an immutable observation.
+
+**Important fields:** source run, observation, source, and receipt-recorded time. Composite source constraints prevent a run from claiming evidence owned by another source.
+
+An identical observation may be deduplicated across distinct valid command/configuration contexts, but each source run keeps its own receipt. Run counts and correlation/configuration provenance therefore come from the run plus its receipts rather than assigning one observation to a single run.
 
 ## `RawObject`
 
@@ -85,6 +93,7 @@ This projection supports property-level aggregation while keeping original wordi
 ## Ingestion relationships and constraints
 
 - Source configuration/search versions link to `PollingRun`/`SourceRun`.
+- `SourceRunObservation` records every run-to-evidence membership independently of immutable observation deduplication.
 - Listing identity rules are source-specific and versioned.
 - One logical parse result exists per observation/parser version/input checksum.
 - Marketing claims preserve exact text/source/observation and cannot be promoted to verified facts by repetition.

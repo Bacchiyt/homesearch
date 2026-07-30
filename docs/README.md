@@ -6,7 +6,7 @@ This index is the required starting point for project work. Read the core overvi
 
 - Phase 0 design is complete and Gate A passed on 2026-07-30 after explicit product-owner approval.
 - [Gate A ADRs 0001–0011](adr/README.md) are `Accepted`. After PR #14 merged, the product owner designated current `main` as the Phase 1 MVP baseline and authorized Phase 2.
-- Phase 2 is in progress with a first non-live vertical slice: a checksum-verified synthetic JSON adapter produces a normalized immutable observation and source facts, and one explicit PostgreSQL transaction idempotently persists its configured run/source/search lineage, normalized listing identity, raw-object metadata, parse result, and facts through an Alembic-backed schema.
+- Phase 2 is in progress with a first non-live vertical slice: a checksum-verified synthetic JSON adapter produces a normalized immutable observation and source facts, and one explicit PostgreSQL transaction idempotently persists its configured run/source/search lineage, durable run-observation receipt, normalized listing identity, raw-object metadata, parse result, and facts through an Alembic-backed schema.
 - Search policies can validate source-neutral areas, price/property criteria, intervals/limits, and user/source references, but no search is configured by default and no polling, live/network source adapter, or scheduler is implemented.
 - The tracked fixture is explicitly synthetic and non-live. No live source access, Gate B approval, external API, email delivery, production infrastructure, credential, or deployment is included.
 

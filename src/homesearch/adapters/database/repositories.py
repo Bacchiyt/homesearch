@@ -17,6 +17,7 @@ from homesearch.adapters.database.schema import (
     polling_runs,
     raw_objects,
     source_facts,
+    source_run_observations,
     source_runs,
     sources,
     users,
@@ -158,6 +159,10 @@ class SqlAlchemyIngestionRepository:
             raw_object_id=raw_object_id,
             listing_id=listing_id,
         )
+        self._link_source_run_observation(
+            write,
+            observation_id=observation_id,
+        )
         parse_run_id, parse_created = self._ensure_parse_run(
             write,
             observation_id=observation_id,
@@ -234,8 +239,12 @@ class SqlAlchemyIngestionRepository:
                     source_runs.c.polling_run_id == polling_runs.c.polling_run_id,
                 )
                 .join(
+                    source_run_observations,
+                    source_run_observations.c.source_run_id == source_runs.c.source_run_id,
+                )
+                .join(
                     observations,
-                    observations.c.source_run_id == source_runs.c.source_run_id,
+                    observations.c.observation_id == source_run_observations.c.observation_id,
                 )
                 .join(
                     parse_runs,
@@ -375,7 +384,6 @@ class SqlAlchemyIngestionRepository:
                 observation_id=write.observation_id,
                 source_id=write.source_id,
                 listing_id=listing_id,
-                source_run_id=write.source_run_id,
                 raw_object_id=raw_object_id,
                 observed_at=write.result.observed_at,
                 recorded_at=write.recorded_at,
@@ -390,7 +398,6 @@ class SqlAlchemyIngestionRepository:
                 replay_eligible=write.result.replay_eligible,
                 retention_policy_reference=write.result.retention_policy_reference,
                 compliance_reference=write.result.compliance_reference,
-                correlation_id=write.correlation_id,
                 idempotency_fingerprint=write.observation_fingerprint,
             )
             .on_conflict_do_nothing(
@@ -408,6 +415,21 @@ class SqlAlchemyIngestionRepository:
             )
         ).scalar_one()
         return UUID(str(persisted_id))
+
+    def _link_source_run_observation(
+        self,
+        write: IngestionWrite,
+        *,
+        observation_id: UUID,
+    ) -> None:
+        self._connection.execute(
+            insert(source_run_observations).values(
+                source_run_id=write.source_run_id,
+                observation_id=observation_id,
+                source_id=write.source_id,
+                recorded_at=write.recorded_at,
+            )
+        )
 
     def _ensure_parse_run(
         self,

@@ -21,6 +21,7 @@ INGESTION_TABLES = {
     "parse_runs",
     "raw_objects",
     "source_facts",
+    "source_run_observations",
     "source_runs",
 }
 

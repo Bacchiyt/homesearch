@@ -363,7 +363,6 @@ observations = sa.Table(
     sa.Column("observation_id", postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column("source_id", postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column("listing_id", postgresql.UUID(as_uuid=True), nullable=False),
-    sa.Column("source_run_id", postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column("raw_object_id", postgresql.UUID(as_uuid=True), nullable=True),
     sa.Column("observed_at", sa.DateTime(timezone=True), nullable=False),
     sa.Column("recorded_at", sa.DateTime(timezone=True), nullable=False),
@@ -378,7 +377,6 @@ observations = sa.Table(
     sa.Column("replay_eligible", sa.Boolean(), nullable=False),
     sa.Column("retention_policy_reference", sa.String(length=128), nullable=False),
     sa.Column("compliance_reference", sa.String(length=128), nullable=False),
-    sa.Column("correlation_id", postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column("idempotency_fingerprint", sa.String(length=71), nullable=False),
     sa.CheckConstraint(
         "outcome IN ('SUCCESS', 'PARTIAL', 'FAILED')",
@@ -424,19 +422,48 @@ observations = sa.Table(
         name="fk_observations_source_id_sources",
         ondelete="RESTRICT",
     ),
-    sa.ForeignKeyConstraint(
-        ["source_run_id", "source_id"],
-        ["source_runs.source_run_id", "source_runs.source_id"],
-        name="fk_observations_source_run_source_source_runs",
-        ondelete="RESTRICT",
-    ),
     sa.PrimaryKeyConstraint("observation_id", name="pk_observations"),
+    sa.UniqueConstraint(
+        "observation_id",
+        "source_id",
+        name="uq_observations_id_source",
+    ),
     sa.UniqueConstraint(
         "source_id",
         "idempotency_fingerprint",
         name="uq_observations_source_fingerprint",
     ),
     sa.Index("ix_observations_listing_observed_at", "listing_id", "observed_at"),
+)
+
+source_run_observations = sa.Table(
+    "source_run_observations",
+    metadata,
+    sa.Column("source_run_id", postgresql.UUID(as_uuid=True), nullable=False),
+    sa.Column("observation_id", postgresql.UUID(as_uuid=True), nullable=False),
+    sa.Column("source_id", postgresql.UUID(as_uuid=True), nullable=False),
+    sa.Column("recorded_at", sa.DateTime(timezone=True), nullable=False),
+    sa.ForeignKeyConstraint(
+        ["source_run_id", "source_id"],
+        ["source_runs.source_run_id", "source_runs.source_id"],
+        name="fk_source_run_observations_run_source",
+        ondelete="RESTRICT",
+    ),
+    sa.ForeignKeyConstraint(
+        ["observation_id", "source_id"],
+        ["observations.observation_id", "observations.source_id"],
+        name="fk_source_run_observations_observation_source",
+        ondelete="RESTRICT",
+    ),
+    sa.PrimaryKeyConstraint(
+        "source_run_id",
+        "observation_id",
+        name="pk_source_run_observations",
+    ),
+    sa.Index(
+        "ix_source_run_observations_observation_id",
+        "observation_id",
+    ),
 )
 
 parse_runs = sa.Table(

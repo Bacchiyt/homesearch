@@ -24,6 +24,7 @@ from homesearch.adapters.database.schema import (
     polling_runs,
     raw_objects,
     source_facts,
+    source_run_observations,
     source_runs,
 )
 from homesearch.adapters.sources import FixtureSourceAdapter
@@ -44,15 +45,19 @@ SEARCH_ID = UUID("019fb5f5-61eb-7da6-aa3b-945b3ac03d38")
 def _ingestion_configuration(
     tmp_path: Path,
     database_url: str,
+    *,
+    configuration_version: int,
+    search_version: int,
 ) -> LoadedConfiguration:
-    configuration_path = tmp_path / "fixture-ingestion.toml"
+    configuration_path = tmp_path / f"fixture-ingestion-{configuration_version}.toml"
+    effective_hour = configuration_version - 1
     configuration_path.write_text(
         dedent(
             f"""
             schema_version = 4
             config_id = "fixture-ingestion"
-            config_version = 1
-            effective_from = 2026-08-01T00:00:00Z
+            config_version = {configuration_version}
+            effective_from = 2026-08-01T{effective_hour:02d}:00:00Z
 
             [user_scope]
             default_user_id = "{USER_ID}"
@@ -77,8 +82,8 @@ def _ingestion_configuration(
             [[search_registry.searches]]
             search_id = "{SEARCH_ID}"
             search_key = "synthetic-search"
-            search_version = 1
-            effective_from = 2026-08-01T00:00:00Z
+            search_version = {search_version}
+            effective_from = 2026-08-01T{effective_hour:02d}:00:00Z
             user_id = "{USER_ID}"
             lifecycle = "DISABLED"
             source_ids = ["{SOURCE_ID}"]
@@ -118,7 +123,7 @@ def _ingestion_configuration(
 
 
 @pytest.mark.postgresql
-def test_fixture_ingests_end_to_end_atomically_and_idempotently(
+def test_fixture_ingestion_deduplicates_evidence_and_preserves_each_run_receipt(
     server_configuration: LoadedConfiguration,
     tmp_path: Path,
 ) -> None:
@@ -130,7 +135,12 @@ def test_fixture_ingests_end_to_end_atomically_and_idempotently(
         database_url = resolve_database_url(database_configuration).render_as_string(
             hide_password=False
         )
-        configuration = _ingestion_configuration(tmp_path, database_url)
+        configuration = _ingestion_configuration(
+            tmp_path,
+            database_url,
+            configuration_version=1,
+            search_version=1,
+        )
         engine = create_database_engine(database_configuration)
         adapter = FixtureSourceAdapter(
             FIXTURE_MANIFEST,
@@ -139,7 +149,9 @@ def test_fixture_ingests_end_to_end_atomically_and_idempotently(
         )
         foundation_time = datetime(2026, 8, 1, 0, 1, tzinfo=UTC)
         first_ingestion_time = datetime(2026, 8, 1, 0, 2, tzinfo=UTC)
-        second_ingestion_time = first_ingestion_time + timedelta(hours=1)
+        repeated_ingestion_time = first_ingestion_time + timedelta(minutes=1)
+        second_foundation_time = foundation_time + timedelta(hours=1)
+        second_context_ingestion_time = first_ingestion_time + timedelta(hours=1)
 
         def unit_of_work_factory() -> SqlAlchemyUnitOfWork:
             return SqlAlchemyUnitOfWork(engine)
@@ -166,18 +178,43 @@ def test_fixture_ingests_end_to_end_atomically_and_idempotently(
                 clock=lambda: first_ingestion_time,
                 id_factory=uuid7,
             )
-            second = ingest_source(
+            repeated = ingest_source(
                 configuration,
                 command_input,
                 adapter,
                 unit_of_work_factory,
-                clock=lambda: second_ingestion_time,
+                clock=lambda: repeated_ingestion_time,
+                id_factory=uuid7,
+            )
+            second_configuration = _ingestion_configuration(
+                tmp_path,
+                database_url,
+                configuration_version=2,
+                search_version=2,
+            )
+            second_configuration_snapshot_id = persist_configuration_foundation(
+                second_configuration,
+                unit_of_work_factory,
+                clock=lambda: second_foundation_time,
+                id_factory=uuid7,
+            )
+            second_context = ingest_source(
+                second_configuration,
+                IngestSourceCommand(
+                    configuration_snapshot_id=second_configuration_snapshot_id,
+                    source_id=SOURCE_ID,
+                    search_id=SEARCH_ID,
+                    reference="listing-001",
+                ),
+                adapter,
+                unit_of_work_factory,
+                clock=lambda: second_context_ingestion_time,
                 id_factory=uuid7,
             )
 
             assert first.created is True
-            assert second.created is False
-            assert second == type(second)(
+            assert repeated.created is False
+            assert repeated == type(repeated)(
                 polling_run_id=first.polling_run_id,
                 source_run_id=first.source_run_id,
                 listing_id=first.listing_id,
@@ -186,6 +223,13 @@ def test_fixture_ingests_end_to_end_atomically_and_idempotently(
                 correlation_id=first.correlation_id,
                 created=False,
             )
+            assert second_context.created is True
+            assert second_context.listing_id == first.listing_id
+            assert second_context.observation_id == first.observation_id
+            assert second_context.parse_run_id == first.parse_run_id
+            assert second_context.polling_run_id != first.polling_run_id
+            assert second_context.source_run_id != first.source_run_id
+            assert second_context.correlation_id != first.correlation_id
             assert all(
                 identifier.version == 7
                 for identifier in (
@@ -195,6 +239,9 @@ def test_fixture_ingests_end_to_end_atomically_and_idempotently(
                     first.observation_id,
                     first.parse_run_id,
                     first.correlation_id,
+                    second_context.polling_run_id,
+                    second_context.source_run_id,
+                    second_context.correlation_id,
                 )
             )
 
@@ -205,14 +252,32 @@ def test_fixture_ingests_end_to_end_atomically_and_idempotently(
                         listings,
                         polling_runs,
                         source_runs,
+                        source_run_observations,
                         raw_objects,
                         observations,
                         parse_runs,
                         source_facts,
                     )
                 }
-                polling_run = connection.execute(sa.select(polling_runs)).mappings().one()
-                source_run = connection.execute(sa.select(source_runs)).mappings().one()
+                polling_run_rows = (
+                    connection.execute(sa.select(polling_runs).order_by(polling_runs.c.recorded_at))
+                    .mappings()
+                    .all()
+                )
+                source_run_rows = (
+                    connection.execute(sa.select(source_runs).order_by(source_runs.c.recorded_at))
+                    .mappings()
+                    .all()
+                )
+                run_observation_rows = (
+                    connection.execute(
+                        sa.select(source_run_observations).order_by(
+                            source_run_observations.c.recorded_at
+                        )
+                    )
+                    .mappings()
+                    .all()
+                )
                 raw_object = connection.execute(sa.select(raw_objects)).mappings().one()
                 observation = connection.execute(sa.select(observations)).mappings().one()
                 parse_run = connection.execute(sa.select(parse_runs)).mappings().one()
@@ -224,25 +289,52 @@ def test_fixture_ingests_end_to_end_atomically_and_idempotently(
 
             assert counts == {
                 "listings": 1,
-                "polling_runs": 1,
-                "source_runs": 1,
+                "polling_runs": 2,
+                "source_runs": 2,
+                "source_run_observations": 2,
                 "raw_objects": 1,
                 "observations": 1,
                 "parse_runs": 1,
                 "source_facts": 4,
             }
-            assert polling_run["user_id"] == USER_ID
-            assert polling_run["configuration_snapshot_id"] == configuration_snapshot_id
-            assert polling_run["configuration_digest"] == configuration.digest
-            assert source_run["source_id"] == SOURCE_ID
-            assert source_run["search_id"] == SEARCH_ID
-            assert source_run["search_version"] == 1
+            assert [row["user_id"] for row in polling_run_rows] == [USER_ID, USER_ID]
+            assert [row["configuration_snapshot_id"] for row in polling_run_rows] == [
+                configuration_snapshot_id,
+                second_configuration_snapshot_id,
+            ]
+            assert [row["configuration_digest"] for row in polling_run_rows] == [
+                configuration.digest,
+                second_configuration.digest,
+            ]
+            assert [row["source_id"] for row in source_run_rows] == [
+                SOURCE_ID,
+                SOURCE_ID,
+            ]
+            assert [row["search_id"] for row in source_run_rows] == [
+                SEARCH_ID,
+                SEARCH_ID,
+            ]
+            assert [row["search_version"] for row in source_run_rows] == [1, 2]
+            assert [
+                (row["source_run_id"], row["observation_id"], row["source_id"])
+                for row in run_observation_rows
+            ] == [
+                (first.source_run_id, first.observation_id, SOURCE_ID),
+                (
+                    second_context.source_run_id,
+                    second_context.observation_id,
+                    SOURCE_ID,
+                ),
+            ]
+            assert [row["recorded_at"] for row in run_observation_rows] == [
+                first_ingestion_time,
+                second_context_ingestion_time,
+            ]
             assert raw_object["checksum"] == observation["content_checksum"]
             assert raw_object["storage_adapter"] == "FIXTURE"
             assert raw_object["replay_eligible"] is True
             assert observation["recorded_at"] == first_ingestion_time
             assert observation["observed_at"] == datetime(2026, 8, 1, tzinfo=UTC)
-            assert observation["correlation_id"] == first.correlation_id
             assert parse_run["parser_version"] == "1"
             assert parse_run["input_checksum"] == observation["content_checksum"]
             assert {fact["fact_key"] for fact in facts} == {

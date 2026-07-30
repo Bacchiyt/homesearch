@@ -202,7 +202,6 @@ def upgrade() -> None:
         sa.Column("observation_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("source_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("listing_id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("source_run_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("raw_object_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("observed_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("recorded_at", sa.DateTime(timezone=True), nullable=False),
@@ -217,7 +216,6 @@ def upgrade() -> None:
         sa.Column("replay_eligible", sa.Boolean(), nullable=False),
         sa.Column("retention_policy_reference", sa.String(length=128), nullable=False),
         sa.Column("compliance_reference", sa.String(length=128), nullable=False),
-        sa.Column("correlation_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("idempotency_fingerprint", sa.String(length=71), nullable=False),
         sa.CheckConstraint(
             "outcome IN ('SUCCESS', 'PARTIAL', 'FAILED')",
@@ -263,13 +261,12 @@ def upgrade() -> None:
             name="fk_observations_source_id_sources",
             ondelete="RESTRICT",
         ),
-        sa.ForeignKeyConstraint(
-            ["source_run_id", "source_id"],
-            ["source_runs.source_run_id", "source_runs.source_id"],
-            name="fk_observations_source_run_source_source_runs",
-            ondelete="RESTRICT",
-        ),
         sa.PrimaryKeyConstraint("observation_id", name="pk_observations"),
+        sa.UniqueConstraint(
+            "observation_id",
+            "source_id",
+            name="uq_observations_id_source",
+        ),
         sa.UniqueConstraint(
             "source_id",
             "idempotency_fingerprint",
@@ -280,6 +277,36 @@ def upgrade() -> None:
         "ix_observations_listing_observed_at",
         "observations",
         ["listing_id", "observed_at"],
+    )
+
+    op.create_table(
+        "source_run_observations",
+        sa.Column("source_run_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("observation_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("source_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("recorded_at", sa.DateTime(timezone=True), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["source_run_id", "source_id"],
+            ["source_runs.source_run_id", "source_runs.source_id"],
+            name="fk_source_run_observations_run_source",
+            ondelete="RESTRICT",
+        ),
+        sa.ForeignKeyConstraint(
+            ["observation_id", "source_id"],
+            ["observations.observation_id", "observations.source_id"],
+            name="fk_source_run_observations_observation_source",
+            ondelete="RESTRICT",
+        ),
+        sa.PrimaryKeyConstraint(
+            "source_run_id",
+            "observation_id",
+            name="pk_source_run_observations",
+        ),
+    )
+    op.create_index(
+        "ix_source_run_observations_observation_id",
+        "source_run_observations",
+        ["observation_id"],
     )
 
     op.create_table(
@@ -433,6 +460,11 @@ def downgrade() -> None:
 
     op.drop_table("source_facts")
     op.drop_table("parse_runs")
+    op.drop_index(
+        "ix_source_run_observations_observation_id",
+        table_name="source_run_observations",
+    )
+    op.drop_table("source_run_observations")
     op.drop_index("ix_observations_listing_observed_at", table_name="observations")
     op.drop_table("observations")
     op.drop_table("raw_objects")
