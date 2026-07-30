@@ -5,6 +5,8 @@ from importlib import import_module
 from importlib.metadata import version
 
 import httpx
+import psycopg
+import sqlalchemy
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 
@@ -23,3 +25,5 @@ def test_accepted_runtime_dependencies_load_on_python_314() -> None:
     assert callable(httpx.Client)
     assert import_module("lxml.html").__name__ == "lxml.html"
     assert issubclass(BaseSettings, BaseModel)
+    assert psycopg.__version__
+    assert sqlalchemy.__version__

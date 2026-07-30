@@ -13,6 +13,8 @@ dependencies = [
     "lxml>=6,<7",
     "pydantic>=2.12,<3",
     "pydantic-settings>=2.11,<3",
+    "psycopg[binary]>=3.3.4,<4",
+    "sqlalchemy>=2.0.51,<3",
 ]
 
 [dependency-groups]
