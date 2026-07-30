@@ -34,7 +34,10 @@ strict = true
 warn_unreachable = true
 
 [tool.pytest.ini_options]
-addopts = ["-ra", "--strict-config", "--strict-markers"]
+addopts = ["-ra", "--strict-config", "--strict-markers", "--tb=short"]
+markers = [
+    "postgresql: requires a disposable PostgreSQL database created from HOMESEARCH_TEST_DATABASE_URL",
+]
 testpaths = ["tests"]
 
 [tool.ruff]

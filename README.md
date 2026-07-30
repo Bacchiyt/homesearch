@@ -4,9 +4,9 @@ Homesearch is a personal system for discovering, normalizing, enriching, evaluat
 
 ## Current implementation scope
 
-Phase 1 currently provides the Python project/toolchain bootstrap, the versioned configuration foundation, the synchronous PostgreSQL connection boundary, a local PostgreSQL 18.4 Docker Compose service, and an Alembic migration foundation. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults define one explicit non-secret UUIDv7 user plus empty source and search registries; no source or search is configured, and no source is authorized for access.
+Phase 1 currently provides the Python project/toolchain bootstrap, the versioned configuration foundation, the synchronous PostgreSQL connection boundary, a local PostgreSQL 18.4 Docker Compose service, and a migration-backed initial persistence schema. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults define one explicit non-secret UUIDv7 user plus empty source and search registries; no source or search is configured, and no source is authorized for access.
 
-Migration revisions, database schemas, application-owned PostgreSQL connections outside the migration runner, CI, authentication, destinations, source adapters, polling/scheduler behavior, tracking schedules, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
+SQLAlchemy mappings, repositories/transactions, application workflows, CI, authentication, destinations, source adapters, polling/scheduler behavior, tracking schedules, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
 
 ## Local setup
 
@@ -78,20 +78,39 @@ docker compose stop postgres
 
 `alembic.ini` contains migration-script settings only; it never contains a database URL. When a revision exists, the Alembic environment uses the same configuration loader and named database secret as the application. Offline `--sql` commands resolve the validated PostgreSQL dialect URL without connecting. Online commands create a connection only through the existing synchronous database engine boundary.
 
-The revision tree is intentionally empty in this foundation task, so `head` and `base` currently identify the same no-application-schema state. Inspect it without a database:
+The first revision creates only the Phase 1 persistence anchors:
+
+- immutable safe configuration snapshots identified by configuration ID/version and digest;
+- explicit user and source identities;
+- separate property and source-owned listing identities; and
+- a user-owned top-level run ledger tied to the exact configuration snapshot and digest.
+
+It intentionally does not seed the configured default user or add observations, raw objects, source runs, property/listing resolution links, repositories, or business workflows. Durable entity IDs use native PostgreSQL `uuid` columns without database defaults so the application remains the explicit UUIDv7 owner.
+
+Inspect the revision history without a database:
 
 ```shell
 uv run alembic heads
 uv run alembic history
 ```
 
-The empty revision tree makes both `upgrade head` and `downgrade base` safe no-ops. `upgrade head --sql` intentionally renders no SQL:
+With the example database profile and secret configured, migrate the local database and report its version:
 
 ```shell
-uv run alembic upgrade head --sql
+uv run alembic upgrade head
+uv run alembic current
 ```
 
-After the first schema revision is added in a separate reviewed task, offline commands will require the configured PostgreSQL dialect URL and online `upgrade`/`downgrade` commands will use PostgreSQL through the same application configuration and engine path. Every future schema change must add a reviewed revision with a safe, truthful downgrade or an explicit forward-repair plan.
+`uv run alembic downgrade base` removes all six Phase 1 application tables and their data. Use it only against an explicitly disposable local/test database. Alembic retains its empty version table at `base`; no pre-existing database objects are removed.
+
+The PostgreSQL integration suite derives disposable database names from a separately supplied server URL, migrates each database from empty to `head`, downgrades to `base`, and drops only those generated databases:
+
+```shell
+export HOMESEARCH_TEST_DATABASE_URL="$HOMESEARCH_DATABASE_URL"
+uv run pytest -m postgresql tests/adapters/database/test_initial_schema.py
+```
+
+The role in `HOMESEARCH_TEST_DATABASE_URL` must be allowed to create and drop databases; the existing Compose `homesearch` role has that local-only capability. The URL still passes through the application configuration and engine boundary and is never read from a tracked file. Every future schema change must add a reviewed revision with a safe, truthful downgrade or an explicit forward-repair plan.
 
 `user_scope` is version-controlled, contains no personal profile or destination data, and currently permits exactly one user. Its explicit `default_user_id` prevents later persistence and command code from relying on a hidden process-wide singleton.
 

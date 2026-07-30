@@ -113,4 +113,4 @@ Create later ADRs only when their gate/phase needs them:
 
 ## Current authorization
 
-Phase 1 is authorized to begin because Gate A passed through explicit product-owner approval. This documentation-only acceptance change does not start Phase 1 implementation. Phase 2 and later work remain subject to phase dependencies, and Gates B–D still block live source access, outbound providers, production resources, credentials, and deployment.
+Phase 1 is in progress because Gate A passed through explicit product-owner approval. Phase 2 and later work remain subject to phase dependencies, and Gates B–D still block live source access, outbound providers, production resources, credentials, and deployment.
