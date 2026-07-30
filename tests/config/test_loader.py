@@ -98,16 +98,13 @@ def test_layers_apply_in_the_documented_precedence(
     assert layered.configuration.runtime.log_level is LogLevel.DEBUG
     assert layered.configuration.runtime.log_format is LogFormat.CONSOLE
 
+    monkeypatch.setenv("HOMESEARCH_CONFIG_PATH", str(base))
+    monkeypatch.setenv("HOMESEARCH_PROFILE_PATH", str(profile))
+    monkeypatch.setenv("HOMESEARCH_LOCAL_CONFIG_PATH", str(local))
     monkeypatch.setenv("HOMESEARCH_LOG_LEVEL", "ERROR")
     monkeypatch.setenv("HOMESEARCH_LOG_FORMAT", "json")
     monkeypatch.chdir(tmp_path)
-    overridden = load_configuration(
-        OperationalSettings(
-            config_path=base,
-            profile_path=profile,
-            local_config_path=local,
-        )
-    )
+    overridden = load_configuration()
     assert overridden.configuration.runtime.log_level is LogLevel.ERROR
     assert overridden.configuration.runtime.log_format is LogFormat.JSON
 
@@ -153,6 +150,56 @@ def test_ignored_dotenv_supplies_allowlisted_settings_and_secrets(
     assert loaded.get_secret("database-url") is not None
     assert secret_value not in repr(loaded)
     assert secret_value not in loaded.model_dump_json()
+
+
+def test_explicit_operational_settings_ignore_environment_and_dotenv(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    defaults = DEFAULTS.resolve()
+    ambient_profile = _write_toml(
+        tmp_path / "ambient-profile.toml",
+        """
+        schema_version = 1
+        config_id = "ambient-profile"
+        config_version = 1
+        effective_from = 2026-07-30T00:00:00Z
+
+        [[secret_references]]
+        secret_id = "database-url"
+        setting = "database_url"
+        required = true
+        """,
+    )
+    ambient_local = _write_toml(
+        tmp_path / "ambient-local.toml",
+        """
+        [runtime]
+        log_format = "console"
+        """,
+    )
+    (tmp_path / ".env").write_text(
+        "\n".join(
+            [
+                f"HOMESEARCH_PROFILE_PATH={ambient_profile}",
+                f"HOMESEARCH_LOCAL_CONFIG_PATH={ambient_local}",
+                "HOMESEARCH_LOG_FORMAT=console",
+                "HOMESEARCH_DATABASE_URL=dotenv-sensitive-value",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("HOMESEARCH_CONFIG_PATH", str(tmp_path / "missing.toml"))
+    monkeypatch.setenv("HOMESEARCH_LOG_LEVEL", "ERROR")
+    monkeypatch.chdir(tmp_path)
+
+    loaded = load_configuration(OperationalSettings(config_path=defaults))
+
+    assert loaded.configuration.config_id == "homesearch-default"
+    assert loaded.configuration.runtime.log_level is LogLevel.INFO
+    assert loaded.configuration.runtime.log_format is LogFormat.JSON
+    assert loaded.resolved_secrets == ()
 
 
 @pytest.mark.parametrize(
@@ -389,8 +436,9 @@ def test_environment_cannot_override_unlisted_policy_fields(
 ) -> None:
     defaults = DEFAULTS.resolve()
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("HOMESEARCH_CONFIG_PATH", str(defaults))
     monkeypatch.setenv("HOMESEARCH_CONFIG_VERSION", "999")
 
-    loaded = load_configuration(OperationalSettings(config_path=defaults))
+    loaded = load_configuration()
 
     assert loaded.configuration.config_version == 1

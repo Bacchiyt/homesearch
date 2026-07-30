@@ -10,11 +10,14 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, SecretStr, ValidationError
+from pydantic import BaseModel, Field, SecretStr, ValidationError
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from homesearch.config.models import (
     LoadedConfiguration,
     LocalConfiguration,
+    LogFormat,
+    LogLevel,
     OperationalSettings,
     ProfileConfiguration,
     ResolvedSecret,
@@ -27,12 +30,39 @@ class ConfigurationError(RuntimeError):
     """Safe startup failure caused by invalid or incomplete configuration."""
 
 
+class _EnvironmentSettings(BaseSettings):
+    """Allowlisted process and dotenv input used only by the default loader."""
+
+    model_config = SettingsConfigDict(
+        env_prefix="HOMESEARCH_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        frozen=True,
+        hide_input_in_errors=True,
+    )
+
+    config_path: Path = Path("config/defaults.toml")
+    profile_path: Path | None = None
+    local_config_path: Path | None = None
+    log_level: LogLevel | None = None
+    log_format: LogFormat | None = None
+    database_url: SecretStr | None = Field(default=None, repr=False)
+
+
+def load_operational_settings() -> OperationalSettings:
+    """Read the narrow environment/dotenv allowlist into explicit input."""
+
+    environment = _EnvironmentSettings()
+    return OperationalSettings.model_validate(environment.model_dump())
+
+
 def load_configuration(
     settings: OperationalSettings | None = None,
 ) -> LoadedConfiguration:
     """Load and validate all configured layers before work starts."""
 
-    active_settings = settings or OperationalSettings()
+    active_settings = settings if settings is not None else load_operational_settings()
     base_data = _read_toml(active_settings.config_path)
     base = _validate(SafeConfiguration, base_data, active_settings.config_path)
     merged = base.model_dump(mode="python")

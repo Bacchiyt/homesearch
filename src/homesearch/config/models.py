@@ -17,7 +17,6 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
 StableId = Annotated[
     str,
@@ -137,18 +136,8 @@ class LocalConfiguration(StrictConfigurationModel):
     runtime: RuntimeOverrides | None = None
 
 
-class OperationalSettings(BaseSettings):
-    """Small environment and optional dotenv allowlist."""
-
-    model_config = SettingsConfigDict(
-        env_prefix="HOMESEARCH_",
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-        frozen=True,
-        hide_input_in_errors=True,
-        populate_by_name=True,
-    )
+class OperationalSettings(StrictConfigurationModel):
+    """Complete explicit operational input, isolated from ambient settings."""
 
     config_path: Path = Path("config/defaults.toml")
     profile_path: Path | None = None

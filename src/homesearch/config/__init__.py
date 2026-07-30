@@ -1,6 +1,10 @@
 """Validated, versioned application configuration."""
 
-from homesearch.config.loader import ConfigurationError, load_configuration
+from homesearch.config.loader import (
+    ConfigurationError,
+    load_configuration,
+    load_operational_settings,
+)
 from homesearch.config.models import (
     LoadedConfiguration,
     LogFormat,
@@ -17,4 +21,5 @@ __all__ = [
     "OperationalSettings",
     "SafeConfiguration",
     "load_configuration",
+    "load_operational_settings",
 ]
