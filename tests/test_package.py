@@ -4,6 +4,7 @@ import sys
 from importlib import import_module
 from importlib.metadata import version
 
+import alembic
 import httpx
 import psycopg
 import sqlalchemy
@@ -25,5 +26,6 @@ def test_accepted_runtime_dependencies_load_on_python_314() -> None:
     assert callable(httpx.Client)
     assert import_module("lxml.html").__name__ == "lxml.html"
     assert issubclass(BaseSettings, BaseModel)
+    assert alembic.__version__
     assert psycopg.__version__
     assert sqlalchemy.__version__

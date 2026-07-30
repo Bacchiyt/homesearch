@@ -9,6 +9,7 @@ description = "A personal Japanese residential property search and evaluation sy
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
 dependencies = [
+    "alembic>=1.18.5,<2",
     "httpx>=0.28,<1",
     "lxml>=6,<7",
     "pydantic>=2.12,<3",
@@ -25,7 +26,8 @@ dev = [
 ]
 
 [tool.mypy]
-files = ["src", "tests"]
+files = ["src", "tests", "migrations"]
+mypy_path = "src"
 python_version = "3.14"
 show_error_codes = true
 strict = true

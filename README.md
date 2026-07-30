@@ -4,9 +4,9 @@ Homesearch is a personal system for discovering, normalizing, enriching, evaluat
 
 ## Current implementation scope
 
-Phase 1 currently provides the Python project/toolchain bootstrap, the versioned configuration foundation, the synchronous PostgreSQL connection boundary, and a local PostgreSQL 18.4 Docker Compose service. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults define one explicit non-secret UUIDv7 user plus empty source and search registries; no source or search is configured, and no source is authorized for access.
+Phase 1 currently provides the Python project/toolchain bootstrap, the versioned configuration foundation, the synchronous PostgreSQL connection boundary, a local PostgreSQL 18.4 Docker Compose service, and an Alembic migration foundation. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults define one explicit non-secret UUIDv7 user plus empty source and search registries; no source or search is configured, and no source is authorized for access.
 
-Database schemas, migrations, application-owned PostgreSQL connections, CI, authentication, destinations, source adapters, polling/scheduler behavior, tracking schedules, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
+Migration revisions, database schemas, application-owned PostgreSQL connections outside the migration runner, CI, authentication, destinations, source adapters, polling/scheduler behavior, tracking schedules, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
 
 ## Local setup
 
@@ -73,6 +73,25 @@ docker compose stop postgres
 ```
 
 `docker compose down` removes the container and project network but retains `homesearch-postgres-18-data`; the next `up` reuses it. The named volume is local persistence, not a backup. Only when all local data is intentionally disposable, `docker compose down --volumes` removes this project’s named volume and makes the next start initialize an empty database.
+
+### Schema migrations
+
+`alembic.ini` contains migration-script settings only; it never contains a database URL. When a revision exists, the Alembic environment uses the same configuration loader and named database secret as the application. Offline `--sql` commands resolve the validated PostgreSQL dialect URL without connecting. Online commands create a connection only through the existing synchronous database engine boundary.
+
+The revision tree is intentionally empty in this foundation task, so `head` and `base` currently identify the same no-application-schema state. Inspect it without a database:
+
+```shell
+uv run alembic heads
+uv run alembic history
+```
+
+The empty revision tree makes both `upgrade head` and `downgrade base` safe no-ops. `upgrade head --sql` intentionally renders no SQL:
+
+```shell
+uv run alembic upgrade head --sql
+```
+
+After the first schema revision is added in a separate reviewed task, offline commands will require the configured PostgreSQL dialect URL and online `upgrade`/`downgrade` commands will use PostgreSQL through the same application configuration and engine path. Every future schema change must add a reviewed revision with a safe, truthful downgrade or an explicit forward-repair plan.
 
 `user_scope` is version-controlled, contains no personal profile or destination data, and currently permits exactly one user. Its explicit `default_user_id` prevents later persistence and command code from relying on a hidden process-wide singleton.
 
