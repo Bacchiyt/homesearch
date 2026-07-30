@@ -29,7 +29,7 @@ def _write_profile(tmp_path: Path, source_policy: str) -> Path:
     profile.write_text(
         dedent(
             f"""
-            schema_version = 3
+            schema_version = 4
             config_id = "source-profile"
             config_version = 1
             effective_from = 2026-07-30T00:00:00Z
@@ -87,12 +87,12 @@ def _source_policy(
     ).strip()
 
 
-def test_schema_version_three_requires_an_explicit_source_registry(tmp_path: Path) -> None:
+def test_schema_version_four_requires_an_explicit_source_registry(tmp_path: Path) -> None:
     base = tmp_path / "missing-source-registry.toml"
     base.write_text(
         dedent(
             f"""
-            schema_version = 3
+            schema_version = 4
             config_id = "missing-source-registry"
             config_version = 1
             effective_from = 2026-07-30T00:00:00Z
@@ -102,6 +102,9 @@ def test_schema_version_three_requires_an_explicit_source_registry(tmp_path: Pat
 
             [[user_scope.users]]
             user_id = "{DEFAULT_USER_ID}"
+
+            [search_registry]
+            searches = []
 
             [runtime]
             log_level = "INFO"
