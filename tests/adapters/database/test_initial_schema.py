@@ -3,34 +3,22 @@
 from __future__ import annotations
 
 import json
-import os
-from collections.abc import Iterator
-from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from textwrap import dedent
 from uuid import UUID, uuid7
 
 import pytest
 import sqlalchemy as sa
 from alembic import command
-from alembic.config import Config
 from alembic.migration import MigrationContext
-from pydantic import SecretStr
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 
-from homesearch.adapters.database import (
-    create_database_engine,
-    resolve_database_url,
-)
-from homesearch.config import LoadedConfiguration, OperationalSettings, load_configuration
+from homesearch.adapters.database import create_database_engine
+from homesearch.config import LoadedConfiguration
+from tests.adapters.database.postgresql import alembic_config, temporary_database
 
-DEFAULTS = Path("config/defaults.toml")
-ALEMBIC_CONFIG = Path("alembic.ini")
-CONFIGURATION_ATTRIBUTE = "homesearch_configuration"
-TEST_DATABASE_URL_ENV = "HOMESEARCH_TEST_DATABASE_URL"
 INITIAL_REVISION = "20260731_0001"
 APPLICATION_TABLES = {
     "configuration_snapshots",
@@ -40,92 +28,6 @@ APPLICATION_TABLES = {
     "sources",
     "users",
 }
-
-
-def _load_with_database_url(
-    tmp_path: Path,
-    database_url: str,
-) -> LoadedConfiguration:
-    tmp_path.mkdir(parents=True, exist_ok=True)
-    profile = tmp_path / "integration-profile.toml"
-    profile.write_text(
-        dedent(
-            """
-            schema_version = 4
-            config_id = "integration-profile"
-            config_version = 1
-            effective_from = 2026-07-30T00:00:00Z
-
-            [[secret_references]]
-            secret_id = "integration-store"
-            setting = "database_url"
-            required = true
-            """
-        ).strip()
-        + "\n",
-        encoding="utf-8",
-    )
-    return load_configuration(
-        OperationalSettings(
-            config_path=DEFAULTS,
-            profile_path=profile,
-            database_url=SecretStr(database_url),
-        )
-    )
-
-
-def _alembic_config(configuration: LoadedConfiguration) -> Config:
-    config = Config(str(ALEMBIC_CONFIG))
-    config.attributes[CONFIGURATION_ATTRIBUTE] = configuration
-    return config
-
-
-def _quote_database_name(name: str) -> str:
-    if not name.isascii() or not name.replace("_", "").isalnum():
-        raise ValueError("temporary database name is not safe")
-    return f'"{name}"'
-
-
-@contextmanager
-def _temporary_database(
-    server_configuration: LoadedConfiguration,
-    tmp_path: Path,
-) -> Iterator[LoadedConfiguration]:
-    database_name = f"homesearch_test_{uuid7().hex}"
-    quoted_name = _quote_database_name(database_name)
-    server_engine = create_database_engine(server_configuration)
-    database_created = False
-    try:
-        with server_engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
-            connection.exec_driver_sql(f"CREATE DATABASE {quoted_name} TEMPLATE template0")
-        database_created = True
-
-        database_url = resolve_database_url(server_configuration).set(database=database_name)
-        database_configuration = _load_with_database_url(
-            tmp_path / database_name,
-            database_url.render_as_string(hide_password=False),
-        )
-        yield database_configuration
-    finally:
-        if database_created:
-            with server_engine.connect().execution_options(
-                isolation_level="AUTOCOMMIT"
-            ) as connection:
-                connection.exec_driver_sql(f"DROP DATABASE IF EXISTS {quoted_name} WITH (FORCE)")
-        server_engine.dispose()
-
-
-@pytest.fixture(scope="module")
-def server_configuration(
-    tmp_path_factory: pytest.TempPathFactory,
-) -> LoadedConfiguration:
-    database_url = os.environ.get(TEST_DATABASE_URL_ENV)
-    if database_url is None:
-        pytest.skip(f"{TEST_DATABASE_URL_ENV} is required for PostgreSQL integration tests")
-    return _load_with_database_url(
-        tmp_path_factory.mktemp("postgresql-server-configuration"),
-        database_url,
-    )
 
 
 def _application_tables(engine: Engine) -> set[str]:
@@ -143,7 +45,7 @@ def test_initial_migration_is_repeatable_from_empty_and_downgrades_to_base(
     tmp_path: Path,
 ) -> None:
     for cycle in range(2):
-        with _temporary_database(
+        with temporary_database(
             server_configuration,
             tmp_path / f"cycle-{cycle}",
         ) as database_configuration:
@@ -152,12 +54,12 @@ def test_initial_migration_is_repeatable_from_empty_and_downgrades_to_base(
                 assert _application_tables(engine) == set()
                 assert _current_revision(engine) is None
 
-                command.upgrade(_alembic_config(database_configuration), "head")
+                command.upgrade(alembic_config(database_configuration), "head")
 
                 assert _application_tables(engine) == APPLICATION_TABLES
                 assert _current_revision(engine) == INITIAL_REVISION
 
-                command.downgrade(_alembic_config(database_configuration), "base")
+                command.downgrade(alembic_config(database_configuration), "base")
 
                 assert _application_tables(engine) == set()
                 assert _current_revision(engine) is None
@@ -363,11 +265,11 @@ def test_initial_schema_uses_postgresql_types_and_enforces_core_constraints(
     server_configuration: LoadedConfiguration,
     tmp_path: Path,
 ) -> None:
-    with _temporary_database(
+    with temporary_database(
         server_configuration,
         tmp_path / "constraints",
     ) as database_configuration:
-        command.upgrade(_alembic_config(database_configuration), "head")
+        command.upgrade(alembic_config(database_configuration), "head")
         engine = create_database_engine(database_configuration)
         try:
             inspector = sa.inspect(engine)
