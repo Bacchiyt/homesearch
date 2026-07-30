@@ -1,0 +1,17 @@
+{
+  "manifest_version": 1,
+  "provenance": {
+    "origin": "synthetic",
+    "created_for": "homesearch Phase 2 deterministic ingestion tests",
+    "live_source": false
+  },
+  "fixtures": {
+    "listing-001": {
+      "payload_path": "listing-001.json",
+      "sha256": "f263ee911c8a5aeaade5a5bb58840cd7e5a4623cfac994fdacfb389bd92bac1c",
+      "media_type": "application/json",
+      "retention_policy_reference": "synthetic-fixture-v1",
+      "compliance_reference": "synthetic-no-live-source"
+    }
+  }
+}

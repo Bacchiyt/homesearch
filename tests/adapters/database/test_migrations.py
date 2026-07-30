@@ -98,7 +98,7 @@ def _temporary_migration_environment(tmp_path: Path) -> Path:
     return migration_root
 
 
-def test_alembic_configuration_has_no_tracked_database_url_and_one_initial_head() -> None:
+def test_alembic_configuration_has_no_tracked_database_url_and_one_head() -> None:
     config = Config(str(ALEMBIC_CONFIG))
     scripts = ScriptDirectory.from_config(config)
     script_location = config.get_main_option("script_location")
@@ -106,8 +106,11 @@ def test_alembic_configuration_has_no_tracked_database_url_and_one_initial_head(
     assert config.get_main_option("sqlalchemy.url") is None
     assert script_location is not None
     assert Path(script_location).resolve() == Path("migrations").resolve()
-    assert scripts.get_heads() == ["20260731_0001"]
-    assert [revision.revision for revision in scripts.walk_revisions()] == ["20260731_0001"]
+    assert scripts.get_heads() == ["20260731_0002"]
+    assert [revision.revision for revision in scripts.walk_revisions()] == [
+        "20260731_0002",
+        "20260731_0001",
+    ]
 
 
 def test_initial_revision_offline_sql_is_deterministic_and_secret_safe(

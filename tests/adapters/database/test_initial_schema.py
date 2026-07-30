@@ -54,7 +54,7 @@ def test_initial_migration_is_repeatable_from_empty_and_downgrades_to_base(
                 assert _application_tables(engine) == set()
                 assert _current_revision(engine) is None
 
-                command.upgrade(alembic_config(database_configuration), "head")
+                command.upgrade(alembic_config(database_configuration), INITIAL_REVISION)
 
                 assert _application_tables(engine) == APPLICATION_TABLES
                 assert _current_revision(engine) == INITIAL_REVISION

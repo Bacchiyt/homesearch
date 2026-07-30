@@ -4,9 +4,9 @@ Homesearch is a personal system for discovering, normalizing, enriching, evaluat
 
 ## Current implementation scope
 
-Phase 1 currently provides the Python project/toolchain bootstrap, versioned configuration, the synchronous PostgreSQL connection boundary, a local PostgreSQL 18.4 Docker Compose service, a migration-backed initial schema, matching SQLAlchemy Core metadata, an explicit transaction boundary for the first configuration-persistence use case, and GitHub Actions quality/secret-scanning gates. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults define one explicit non-secret UUIDv7 user plus empty source and search registries; no source or search is configured, and no source is authorized for access.
+The merged Phase 1 MVP baseline provides the Python project/toolchain bootstrap, versioned configuration, synchronous PostgreSQL connection boundary, local PostgreSQL 18.4 Docker Compose service, migration-backed foundation schema, matching SQLAlchemy Core metadata, explicit transaction ownership, and GitHub Actions quality/secret-scanning gates. Phase 2 now has one end-to-end non-live ingestion slice: a checksum-verified synthetic JSON fixture becomes normalized observation/fact evidence and is atomically persisted to PostgreSQL.
 
-Property/listing/run repositories and workflows, structured logging, authentication, destinations, source adapters, polling/scheduler behavior, tracking schedules, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
+The tracked defaults still configure no source or search and authorize no source access. Broader discovery/fetch/status adapters, live sources, raw-object lifecycle variants, matching/resolution, enrichment, notifications, authentication, polling/scheduling, external providers, real credentials, and deployment remain intentionally deferred.
 
 ## Local setup
 
@@ -87,6 +87,17 @@ The first revision creates only the Phase 1 persistence anchors:
 
 The migration does not seed rows or add observations, raw objects, source runs, or property/listing resolution links. Durable entity IDs use native PostgreSQL `uuid` columns without database defaults so the application remains the explicit UUIDv7 owner.
 
+The second revision adds only the first Phase 2 ingestion evidence path:
+
+- a normalized, source-scoped listing identity key;
+- source runs tied to the existing polling run, configured source, and search identity/version;
+- provider-neutral raw-object metadata without storing payload bytes in relational rows;
+- immutable observation metadata and content/idempotency fingerprints;
+- versioned parse runs; and
+- source facts with raw and normalized JSON values plus observation provenance.
+
+The synthetic payload remains a minimized tracked test fixture. Runtime raw payloads, database dumps, and local object storage remain ignored and are not committed.
+
 Inspect the revision history without a database:
 
 ```shell
@@ -116,7 +127,7 @@ The role in `HOMESEARCH_TEST_DATABASE_URL` must be allowed to create and drop da
 
 SQLAlchemy Core metadata maps all six migrated tables and is checked against the applied Alembic head in PostgreSQL tests. Alembic remains the authoritative schema history; a mapping change that implies unrepresented DDL fails `alembic check`.
 
-The only current write use case persists the safe effective configuration snapshot and its configured user/source identities in one explicit transaction:
+The foundation write use case persists the safe effective configuration snapshot and its configured user/source identities in one explicit transaction:
 
 ```python
 from homesearch.adapters.database import SqlAlchemyUnitOfWork, create_database_engine
@@ -134,9 +145,30 @@ finally:
     engine.dispose()
 ```
 
-The snapshot document is built from `SafeConfiguration`, never `resolved_secrets`. Its ID is application-generated UUIDv7 and its recorded time is UTC-aware. Repeating the same effective digest returns the existing snapshot; conflicting source ID/key pairs fail and roll back the entire use case. Exiting without `commit()` also rolls back, and the connection is always closed. No global session, implicit commit, delete/cascade operation, property/listing repository, or polling workflow is provided.
+The snapshot document is built from `SafeConfiguration`, never `resolved_secrets`. Its ID is application-generated UUIDv7 and its recorded time is UTC-aware. Repeating the same effective digest returns the existing snapshot; conflicting source ID/key pairs fail and roll back the entire use case. Exiting without `commit()` also rolls back, and the connection is always closed. No global session, implicit commit, delete/cascade operation, generic property repository, or polling workflow is provided.
 
 `user_scope` is version-controlled, contains no personal profile or destination data, and currently permits exactly one user. Its explicit `default_user_id` prevents later persistence and command code from relying on a hidden process-wide singleton.
+
+### Synthetic fixture ingestion
+
+`FixtureSourceAdapter` reads only a local manifest and JSON payload. It verifies that provenance declares synthetic, non-live evidence; rejects unsafe paths and checksum mismatches; and normalizes the fixture into an adapter-neutral observation, parse result, and source facts. It has no HTTP client or network behavior.
+
+`ingest_source` requires a configured `MANUAL_IMPORT` source and a search that references it. The current integration profile deliberately keeps both identities disabled and the source access state `NOT_ASSESSED`; running the fixture does not create or imply Gate B approval. The application derives separate command, observation, and parser idempotency fingerprints and writes the following in one caller-owned unit of work:
+
+- the existing user-owned polling run and configuration snapshot/digest lineage;
+- one configured source/search run;
+- normalized listing identity and raw-object metadata;
+- one immutable observation and versioned parse result; and
+- four provenance-linked source facts from the synthetic fixture.
+
+Repeated execution returns the original durable receipt and does not duplicate runs, listings, observations, parse results, raw-object metadata, or facts. Run the complete vertical-slice test against the disposable PostgreSQL workflow:
+
+```shell
+export HOMESEARCH_TEST_DATABASE_URL="$HOMESEARCH_DATABASE_URL"
+uv run pytest -m postgresql tests/adapters/database/test_fixture_ingestion.py
+```
+
+The fixture lives under `tests/fixtures/ingestion/`; its manifest records synthetic provenance and the exact payload checksum. It is test evidence, not a captured property listing.
 
 Configuration schema version 3 added the versioned `source_registry` boundary. Each source has an opaque UUIDv7 identity plus a stable readable key; its policy can record lifecycle, access-assessment status, neutral capabilities, bounded request settings, and capture/retention/storage behavior.
 
