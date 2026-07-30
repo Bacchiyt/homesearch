@@ -4,9 +4,9 @@ Homesearch is a personal system for discovering, normalizing, enriching, evaluat
 
 ## Current implementation scope
 
-Phase 1 currently provides the Python project/toolchain bootstrap, the versioned configuration foundation, the synchronous PostgreSQL connection boundary, a local PostgreSQL 18.4 Docker Compose service, and a migration-backed initial persistence schema. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults define one explicit non-secret UUIDv7 user plus empty source and search registries; no source or search is configured, and no source is authorized for access.
+Phase 1 currently provides the Python project/toolchain bootstrap, versioned configuration, the synchronous PostgreSQL connection boundary, a local PostgreSQL 18.4 Docker Compose service, a migration-backed initial schema, matching SQLAlchemy Core metadata, and an explicit transaction boundary for the first configuration-persistence use case. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults define one explicit non-secret UUIDv7 user plus empty source and search registries; no source or search is configured, and no source is authorized for access.
 
-SQLAlchemy mappings, repositories/transactions, application workflows, CI, authentication, destinations, source adapters, polling/scheduler behavior, tracking schedules, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
+Property/listing/run repositories and workflows, CI, authentication, destinations, source adapters, polling/scheduler behavior, tracking schedules, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
 
 ## Local setup
 
@@ -34,7 +34,7 @@ Configuration precedence is:
 
 Calling `load_configuration()` with no argument reads that allowlist from the process environment and optional `.env`. Passing an `OperationalSettings` object instead treats it as the complete explicit input and does not consult ambient environment or dotenv values.
 
-The database adapter resolves `HOMESEARCH_DATABASE_URL` only when the active versioned configuration declares the corresponding secret reference. It requires an explicit `postgresql+psycopg://.../<database>` URL and constructs a synchronous SQLAlchemy engine lazily. Engine construction does not contact PostgreSQL; connection and transaction ownership will be introduced with the migration and persistence workflows that require them.
+The database adapter resolves `HOMESEARCH_DATABASE_URL` only when the active versioned configuration declares the corresponding secret reference. It requires an explicit `postgresql+psycopg://.../<database>` URL and constructs a synchronous SQLAlchemy engine lazily. Engine construction does not contact PostgreSQL. Each application use case creates its own unit of work; the unit of work owns one connection/transaction and repositories never commit independently.
 
 ### Local PostgreSQL
 
@@ -85,7 +85,7 @@ The first revision creates only the Phase 1 persistence anchors:
 - separate property and source-owned listing identities; and
 - a user-owned top-level run ledger tied to the exact configuration snapshot and digest.
 
-It intentionally does not seed the configured default user or add observations, raw objects, source runs, property/listing resolution links, repositories, or business workflows. Durable entity IDs use native PostgreSQL `uuid` columns without database defaults so the application remains the explicit UUIDv7 owner.
+The migration does not seed rows or add observations, raw objects, source runs, or property/listing resolution links. Durable entity IDs use native PostgreSQL `uuid` columns without database defaults so the application remains the explicit UUIDv7 owner.
 
 Inspect the revision history without a database:
 
@@ -111,6 +111,30 @@ uv run pytest -m postgresql tests/adapters/database/test_initial_schema.py
 ```
 
 The role in `HOMESEARCH_TEST_DATABASE_URL` must be allowed to create and drop databases; the existing Compose `homesearch` role has that local-only capability. The URL still passes through the application configuration and engine boundary and is never read from a tracked file. Every future schema change must add a reviewed revision with a safe, truthful downgrade or an explicit forward-repair plan.
+
+### Application persistence
+
+SQLAlchemy Core metadata maps all six migrated tables and is checked against the applied Alembic head in PostgreSQL tests. Alembic remains the authoritative schema history; a mapping change that implies unrepresented DDL fails `alembic check`.
+
+The only current write use case persists the safe effective configuration snapshot and its configured user/source identities in one explicit transaction:
+
+```python
+from homesearch.adapters.database import SqlAlchemyUnitOfWork, create_database_engine
+from homesearch.application import persist_configuration_foundation
+from homesearch.config import load_configuration
+
+configuration = load_configuration()
+engine = create_database_engine(configuration)
+try:
+    snapshot_id = persist_configuration_foundation(
+        configuration,
+        lambda: SqlAlchemyUnitOfWork(engine),
+    )
+finally:
+    engine.dispose()
+```
+
+The snapshot document is built from `SafeConfiguration`, never `resolved_secrets`. Its ID is application-generated UUIDv7 and its recorded time is UTC-aware. Repeating the same effective digest returns the existing snapshot; conflicting source ID/key pairs fail and roll back the entire use case. Exiting without `commit()` also rolls back, and the connection is always closed. No global session, implicit commit, delete/cascade operation, property/listing repository, or polling workflow is provided.
 
 `user_scope` is version-controlled, contains no personal profile or destination data, and currently permits exactly one user. Its explicit `default_user_id` prevents later persistence and command code from relying on a hidden process-wide singleton.
 

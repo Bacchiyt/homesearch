@@ -8,12 +8,13 @@ from alembic.script import ScriptDirectory
 
 from homesearch.adapters.database import (
     create_database_engine,
+    metadata,
     resolve_database_url,
 )
 from homesearch.config import LoadedConfiguration, load_configuration
 
 _CONFIGURATION_ATTRIBUTE = "homesearch_configuration"
-target_metadata = None
+target_metadata = metadata
 
 
 def _has_revisions(alembic_config: Config) -> bool:
