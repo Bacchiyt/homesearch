@@ -1,0 +1,42 @@
+[build-system]
+requires = ["uv_build>=0.12.0,<0.13"]
+build-backend = "uv_build"
+
+[project]
+name = "homesearch"
+version = "0.1.0"
+description = "A personal Japanese residential property search and evaluation system"
+readme = "README.md"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "httpx>=0.28,<1",
+    "lxml>=6,<7",
+    "pydantic>=2.12,<3",
+    "pydantic-settings>=2.11,<3",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18,<2",
+    "pytest>=8.4,<10",
+    "ruff>=0.12,<1",
+]
+
+[tool.mypy]
+files = ["src", "tests"]
+python_version = "3.14"
+show_error_codes = true
+strict = true
+warn_unreachable = true
+
+[tool.pytest.ini_options]
+addopts = ["-ra", "--strict-config", "--strict-markers"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP"]

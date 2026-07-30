@@ -1,0 +1,20 @@
+.DS_Store
+
+# Python and project tools
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Local configuration, secrets, and future runtime data
+.env
+.env.*
+!.env.example
+var/
