@@ -8,6 +8,8 @@ Read with [Conceptual data model](../data-model.md) and [Tracking/notification r
 
 Represent configured users/destinations without embedding personal values in code. A single-user implementation is acceptable, but user-scoped tracking/evaluation should not be accidentally precluded. Encrypt or secret-reference destinations as appropriate and redact exports/logs.
 
+[ADR 0007](../adr/0007-initial-user-scope.md) proposes one logical user with explicit `user_id`, secret-referenced destinations, and no early authentication. It remains unapproved.
+
 ### `TrackingPreference`
 
 Append-only per-user/property transitions with state (`NEW`, `TRACKING`, `NOT_TRACKING`, `ARCHIVED`), effective period, transition source, token/notification reference, reason, actor, and time. A current projection may accelerate reads.
@@ -81,6 +83,8 @@ Source/search part of a run with exact source/config/search versions, cursor bef
 ### `Job`
 
 Durable typed/versioned payload with idempotency key, due/priority/state, attempts, lease owner/expiry, timeout, structured error, parent run/job, and timestamps. Physical storage versus broker is an ADR.
+
+[ADR 0005](../adr/0005-scheduling-and-durable-jobs.md) proposes deferring this entity and all scheduler/worker machinery until Phase 6, then using PostgreSQL-backed leases unless measurements justify a broker.
 
 ### `SourceHealthIncident`
 
@@ -160,19 +164,25 @@ Import verifies references/checksums before cutover. Backups are proven only by 
 
 Raw retention, destination privacy, legal deletion, and notification-payload retention require explicit pre-production policy.
 
-## Schema ADR questions
+## Schema decisions
 
-1. UUID/ULID/internal ID and time conventions.
-2. Gate A local/MVP/production database strategy, migration path, ORM/query/transaction layer, and migration tool.
-3. Database enum versus checked text/reference tables.
-4. Typed field tables versus typed/versioned JSON hybrid.
-5. PostgreSQL/PostGIS adoption timing and portable fallback.
-6. Which facts need bitemporal effective time.
-7. Parsed-fact physical shape/indexing.
-8. External-ID reuse/relisting semantics per source.
-9. User scoping from the initial schema.
-10. Compliance erasure/tombstones.
-11. Object encryption/key management/deduplication boundaries.
-12. Destination and notification-payload privacy.
-13. Confidence representation/calibration.
-14. Media/floor-plan evidence representation, subject to approval.
+Gate A proposals awaiting approval:
+
+- [ADR 0002](../adr/0002-database-strategy.md): local/MVP/production database and migration/restore path;
+- [ADR 0003](../adr/0003-database-access-and-migrations.md): SQLAlchemy/transactions, Alembic, UUIDv7, and time conventions;
+- [ADR 0007](../adr/0007-initial-user-scope.md): one logical user with explicit user-owned state; and
+- [ADR 0008](../adr/0008-raw-observation-storage.md): relational metadata and optional raw-object boundary.
+
+Later schema questions:
+
+1. Database enum versus checked text/reference tables.
+2. Typed field tables versus typed/versioned JSON hybrid.
+3. PostGIS adoption and portable fallback.
+4. Which facts need bitemporal effective time.
+5. Parsed-fact physical shape/indexing.
+6. External-ID reuse/relisting semantics per source.
+7. Compliance erasure/tombstones.
+8. Object encryption/key management/deduplication boundaries.
+9. Destination and notification-payload privacy.
+10. Confidence representation/calibration.
+11. Media/floor-plan evidence representation, subject to approval.

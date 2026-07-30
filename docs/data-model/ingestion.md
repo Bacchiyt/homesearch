@@ -48,6 +48,8 @@ Areas may be administrative regions, polygons, or explicit mappings. Source-spec
 
 Content-addressable deduplication is optional; independent source retention rules must remain enforceable.
 
+[ADR 0008](../adr/0008-raw-observation-storage.md) proposes preparing this boundary in Phase 1 and adding synthetic/manual metadata plus policy-permitted local blobs in Phase 2. It does not authorize live capture or production object storage.
+
 ## `ParseRun`
 
 **Purpose:** one parser version's immutable attempt against an observation.

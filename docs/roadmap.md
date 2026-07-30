@@ -24,15 +24,13 @@ Cross-phase rules:
 Before Phase 1:
 
 - approve/revise the Phase 0 documents and modular-monolith direction;
-- choose runtime/toolchain through an ADR;
-- decide and document the local-development database strategy;
-- decide and document the early/MVP persistence strategy;
-- decide the likely production relational target and whether/when PostgreSQL/PostGIS is adopted;
-- define the tested migration path between those stages;
-- decide initial user scoping; and
-- define local-development readiness.
+- review and explicitly accept, revise, reject, or defer each proposal in the [Gate A ADR set](adr/README.md);
+- choose the runtime/toolchain, configuration model, local workflow, and CI gates;
+- decide the local-development database, early/MVP persistence, production relational target, and tested migration path;
+- decide database access/migrations, identifiers/time, jobs/scheduler phase boundary, initial user scope, web deferral, raw-storage boundary, and cost posture; and
+- record any unresolved item with an explicit owner, validation step, and implementation-blocking effect.
 
-**Current state: not approved.**
+**Current state: ADRs 0001–0011 are Proposed; none is Accepted and Gate A is not approved.**
 
 ### Gate B — source access
 
@@ -67,7 +65,7 @@ Before production:
 | Phase | Goal | Detailed plan |
 |---:|---|---|
 | 0 | Durable specification and architecture | [Foundation and ingestion](roadmap/foundation-and-ingestion.md#phase-0--durable-specification-and-architecture) |
-| 1 | Skeleton, ADRs, config, persistence foundation | [Foundation and ingestion](roadmap/foundation-and-ingestion.md#phase-1--project-skeleton-adrs-configuration-and-database-foundation) |
+| 1 | Skeleton, config, persistence foundation | [Foundation and ingestion](roadmap/foundation-and-ingestion.md#phase-1--project-skeleton-configuration-and-database-foundation) |
 | 2 | Source contracts and synthetic/manual raw ingestion | [Foundation and ingestion](roadmap/foundation-and-ingestion.md#phase-2--source-contracts-and-raw-observation-ingestion) |
 | 3 | First approved source | [Foundation and ingestion](roadmap/foundation-and-ingestion.md#phase-3--first-approved-source) |
 | 4 | Normalization and conservative identity resolution | [Domain and tracking](roadmap/domain-and-tracking.md#phase-4--normalization-address-parsing-and-identity-resolution) |
@@ -99,21 +97,20 @@ Before production:
 | Run/report auditability | 6 | every workflow |
 | Backup/restore | prepare before production | every production migration |
 
-## ADR backlog
+## ADR status and later backlog
 
-Create ADRs only when needed:
+The [Gate A proposal set](adr/README.md) covers runtime/tooling, database strategy/access, configuration, jobs, web, user scope, raw storage, local development, CI, and cost. These ADRs are documentation proposals only and need explicit owner approval before Phase 1.
 
-1. Runtime/type/dependency tooling and web framework.
-2. Gate A database strategy: local, MVP, production target, migration path, access layer, migrations, IDs/time, and configuration/secrets.
-3. Database-backed jobs versus queue/scheduler.
-4. Raw storage/retention and PostGIS.
-5. User scoping.
-6. One access/fixture assessment per materially different source.
-7. Field representation/merge policy, marketing-claim aggregation, alias policy, and identity thresholds/override precedence.
-8. Notification readiness/deadline policy and email/action security.
-9. Geocoding, POI, routing/traffic, hazard, and media evidence.
-10. Hosting, backup/recovery, monitoring, and retention.
+Create later ADRs only when their gate/phase needs them:
+
+1. One access/fixture assessment per materially different source.
+2. Field representation/merge policy, marketing-claim aggregation, alias policy, and identity thresholds/override precedence.
+3. Notification readiness/deadline policy and email/action security.
+4. PostGIS adoption and portable spatial fallback if Phase 8 evidence justifies it.
+5. Geocoding, POI, routing/traffic, hazard, and media evidence.
+6. Hosting/provider selection, backup/recovery, monitoring, and production retention.
+7. Authentication/authorization before public access or a second user.
 
 ## Immediate stop
 
-Phase 0 documents are drafted but await user approval. Do **not** begin Phase 1 until Gate A is explicitly approved.
+Phase 0 documents and Proposed Gate A ADRs await user approval. Do **not** begin Phase 1 until the product owner explicitly approves Gate A; proposal, review, branch merge, or silence is not approval.

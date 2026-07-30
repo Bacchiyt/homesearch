@@ -2,6 +2,8 @@
 
 Read with [Architecture](../architecture.md) and [Tracking/notification requirements](../product/tracking-notifications-and-reporting.md).
 
+[ADR 0005](../adr/0005-scheduling-and-durable-jobs.md) proposes the phase boundary and initial mechanism below. It remains `Proposed`, so this document does not authorize a scheduler or worker.
+
 ## Job classes
 
 - source/search discovery;
@@ -30,7 +32,9 @@ Each job has:
 - parent run/job and correlation IDs; and
 - optional source/provider rate bucket.
 
-Database-backed leasing is one provisional low-cost option and requires the Gate A persistence decision plus an ADR/prototype. SQLite locking/concurrency must not be assumed equivalent to the production target. A queue can replace the application job adapter if selected-store or hosting semantics require it.
+The Gate A proposal uses no scheduler, worker daemon, broker, or durable `Job` table in Phase 1. Early application use cases run as synchronous, manually invoked, idempotent commands with an injectable clock and durable run correlation.
+
+From Phase 6, the proposal uses a platform/OS cron-compatible trigger for due-work planning and PostgreSQL-backed leasing for durable jobs. SQLite locking/concurrency must not be assumed equivalent. A queue can replace the job adapter only if measured load or hosting semantics require it.
 
 ## Non-overlap and idempotency
 
@@ -101,6 +105,8 @@ Configuration layers:
 Search definitions and evaluation profiles have stable IDs/versions. Validate unknown sources, invalid areas/ranges/intervals, incompatible capabilities, and missing secret references before scheduling.
 
 No real recipient, credential, API key, token, or private secret-bearing endpoint belongs in version control.
+
+[ADR 0004](../adr/0004-configuration.md) proposes TOML, Pydantic validation, restricted environment overrides, and external secret values; it is not yet accepted.
 
 ## Testing architecture
 
