@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -10,7 +10,7 @@ Homesearch should remain a low-cost personal system. Current vendor prices, free
 
 ## Decision
 
-If Gate A approves:
+Gate A accepts the following decision:
 
 - optimize for local development and one modular deployment rather than multiple always-on services;
 - use open-source local tooling and a local PostgreSQL container during Phase 1;
@@ -49,7 +49,7 @@ The near-term architecture can be close to zero incremental service cost while l
 
 ## Consequences
 
-- Gate A can approve architecture without approving a vendor or spend.
+- Gate A acceptance approves the architecture without approving a vendor or spend.
 - Every outbound/provider ADR must include a measured budget and failure/degradation policy.
 - Caching and content hashes become cost controls as well as performance features.
 - A production database may dominate early recurring cost even at low workload.
@@ -63,7 +63,7 @@ The near-term architecture can be close to zero incremental service cost while l
 
 ## Follow-up/validation
 
-- Gate A approves the cost-control principles, not a price or provider.
+- Gate A accepted the cost-control principles, not a price or provider.
 - Before Gate C, set a monthly variable-provider budget and call/storage estimates.
 - Before Gate D, compare current Japan-region database, web, backup, storage, email, and monitoring costs and define an owner-approved monthly ceiling.
 - Add per-provider usage metrics, quotas, and safe disable switches when each integration is introduced.

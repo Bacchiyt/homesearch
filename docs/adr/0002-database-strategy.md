@@ -2,17 +2,17 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
-Gate A must decide the local-development database, early/MVP persistence, production relational target, and tested path between them. Homesearch will preserve immutable observations, versioned projections, provenance, leases, idempotency constraints, JSON/time values, and potentially spatial data. Differences in concurrency, types, constraints, transactions, and geospatial behavior cannot be hidden by a convenient test store.
+Gate A had to decide the local-development database, early/MVP persistence, production relational target, and tested path between them. Homesearch will preserve immutable observations, versioned projections, provenance, leases, idempotency constraints, JSON/time values, and potentially spatial data. Differences in concurrency, types, constraints, transactions, and geospatial behavior cannot be hidden by a convenient test store.
 
 PostgreSQL/PostGIS is the desired long-term direction, but no database was selected during Phase 0. Database files, dumps, credentials, and personal data must never be committed.
 
 ## Decision
 
-Recommend **Option B: PostgreSQL from Phase 1 for local development, early/MVP persistence, and production**, subject to Gate A approval.
+Gate A accepts **Option B: PostgreSQL from Phase 1 for local development, early/MVP persistence, and production**.
 
 - Use PostgreSQL 18.x as the Phase 1 implementation target and select the [current supported minor release](https://www.postgresql.org/support/versioning/) when implementation begins. Local, CI, and deployment configuration deliberately manage the selected version; do not intentionally remain on an older supported-major minor or float across majors implicitly.
 - Use the same schema and Alembic migration history in local, CI, MVP, and production environments.
@@ -73,7 +73,7 @@ SQLite is permitted only for isolated, bounded uses that do not become applicati
 
 ## Follow-up/validation
 
-- Gate A must explicitly select A, B, or C; this recommendation is not self-approving.
+- Gate A selected Option B; changing the database strategy requires a later ADR lifecycle decision.
 - In Phase 1, select the current supported PostgreSQL 18.x minor and prove empty-schema migration, upgrade, constraints, transaction behavior, UTC/JSON round trips, and restore into a fresh instance at that managed version.
 - For a future PostgreSQL major, validate application/driver/extension compatibility and rehearse backup, restore, migration, and recovery before changing the approved target; update the ADR where the impact is material.
 - Before MVP persistence becomes valuable, define local backup handling and production RPO/RTO.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -10,7 +10,7 @@ The early system is a local, command-driven personal workflow. It does not need 
 
 ## Decision
 
-If Gate A approves:
+Gate A accepts the following decision:
 
 - do not add a web framework dependency, server entry point, always-on process, or public endpoint in Phase 1;
 - keep application use cases callable through typed framework-neutral ports;
@@ -54,7 +54,7 @@ Gate C must approve outbound email/action design, and Gate D must approve public
 
 ## Follow-up/validation
 
-- Gate A approves deferral and the designated future framework.
+- Gate A accepted the deferral and designated future framework.
 - At Phase 7, validate GET safety, POST confirmation, token expiry/tamper/replay, redaction, CSRF/referrer behavior, and synchronous database lifecycle.
 - At Gate D, compare a small always-on host with serverless/on-demand options using current regional capability and cost.
 

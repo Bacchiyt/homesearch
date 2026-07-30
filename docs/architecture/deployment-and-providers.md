@@ -35,7 +35,7 @@ When approved:
 
 Processes may share one image/platform. A dedicated broker is intentionally absent initially.
 
-[ADR 0006](../adr/0006-web-and-api.md) proposes no Phase 1 web process and no HTTP dependency until an approved later phase. [ADR 0005](../adr/0005-scheduling-and-durable-jobs.md) proposes no scheduler/worker engine until Phase 6. Both remain `Proposed`.
+[ADR 0006](../adr/0006-web-and-api.md) accepts no Phase 1 web process or HTTP dependency until an approved later phase. [ADR 0005](../adr/0005-scheduling-and-durable-jobs.md) accepts no scheduler/worker engine until Phase 6.
 
 ## Portability
 
@@ -69,7 +69,7 @@ No provider or price is selected.
 
 | Capability | Architectural rule | Research needed |
 |---|---|---|
-| Database | [ADR 0002](../adr/0002-database-strategy.md) proposes PostgreSQL 18 throughout; no host/resource is selected | Japan region, supported minor, backup, cost, egress, extensions/PostGIS, scaling/sleep |
+| Database | [ADR 0002](../adr/0002-database-strategy.md) selects PostgreSQL 18 throughout; no host/resource is selected | Japan region, supported minor, backup, cost, egress, extensions/PostGIS, scaling/sleep |
 | Email | Transactional adapter with idempotency/webhook option | Japanese delivery, sender requirements, privacy, cost |
 | Geocoding | Cached inputs/results with precision/terms | Japanese quality, official/open options, quota, redistribution |
 | POI/business | Bounded categories and area/input cache | Coverage, categories, current hours, terms, cost |

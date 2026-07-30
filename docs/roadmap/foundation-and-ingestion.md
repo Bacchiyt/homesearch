@@ -11,21 +11,21 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 - `AGENTS.md` and `docs/README.md`;
 - product, architecture, data-model, and roadmap entry points plus focused documents;
 - explicit risks, uncertainties, ADR candidates, and deferred work; and
-- a documentation-only [Gate A proposal set](../adr/README.md) with alternatives, consequences, validation, and owner approval still pending.
+- a documentation-only [Gate A decision set](../adr/README.md) with alternatives, consequences, validation, and an explicit lifecycle status.
 
 **Tests/review:**
 
 - trace every originating requirement into the documentation set;
 - verify no production code, credentials, live access, deployment, or external resource;
 - check terminology/invariants/links and Mermaid rendering; and
-- verify every Gate A ADR is `Proposed` and does not silently authorize Phase 1.
+- verify every Gate A ADR was reviewable as `Proposed` before approval and did not silently authorize implementation.
 
 **Completion criteria:**
 
 - required entry-point files exist and are consistently routed;
 - property/listing/observation, retention, provenance, identity, history, security, and portability are explicit;
 - unresolved decisions are labeled;
-- the product owner reviews the proposals and explicitly approves or revises Gate A.
+- the product owner reviewed the proposals and explicitly approved Gate A on 2026-07-30.
 
 **Dependencies:** none.
 
@@ -35,6 +35,8 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 
 **Goal:** minimal runnable/testable foundation without live property collection.
 
+**Authorization:** Gate A passed and this phase may begin. No Phase 1 implementation is included in the Gate A acceptance change.
+
 **Deliverables:**
 
 - implementation of the explicitly Accepted Gate A ADRs, with any material deviation recorded before code changes;
@@ -43,7 +45,7 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 - placeholder-only `.env.example`;
 - Gate A-approved local-development and early/MVP persistence workflow;
 - documented production relational target and tested migration path;
-- if [ADR 0002](../adr/0002-database-strategy.md) is accepted, a PostgreSQL 18 local/CI foundation;
+- an [ADR 0002](../adr/0002-database-strategy.md)-compliant PostgreSQL 18 local/CI foundation;
 - initial migrations for the approved configuration, user/source, listing/property anchor, run-ledger, and migration metadata scope;
 - developer commands/CI and structured correlation logging.
 
@@ -67,7 +69,7 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 - no production service/secret needed;
 - Gate A ADRs are Accepted or explicitly deferred without leaving an implementation dependency unresolved.
 
-**Dependencies:** approved Phase 0 and Gate A.
+**Dependencies:** satisfied — Phase 0 is approved and Gate A passed with ADRs 0001–0011 `Accepted`.
 
 **Intentionally deferred:** source adapters, raw payload storage, broad schema, scheduler/worker/job engine, external calls, deployment.
 

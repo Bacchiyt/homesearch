@@ -4,13 +4,13 @@ ADRs capture durable technical decisions without moving implementation detail in
 
 ## Status
 
-Every ADR in this directory is **Proposed**. Gate A has not been approved, none of these recommendations authorizes Phase 1, and implementation must not treat a proposal as accepted.
+Gate A passed on 2026-07-30. The product owner explicitly accepted ADRs 0001–0011 after reviewing the recommendations merged in [PR #2](https://github.com/Bacchiyt/homesearch/pull/2). Phase 1 is authorized to implement these decisions within its roadmap scope.
 
-An ADR changes to `Accepted` only after explicit product-owner approval. If the owner selects a different option, update the ADR's decision and consequences before accepting it. Later changes supersede rather than rewrite accepted history.
+This status change records the ADR lifecycle transition from `Proposed` to `Accepted`; it does not authorize live source access, external services, credentials, infrastructure, deployment, or later phases. Later decision changes must supersede rather than rewrite accepted history.
 
-## Gate A proposal set
+## Gate A accepted decision set
 
-| ADR | Scope | Recommendation |
+| ADR | Scope | Accepted decision |
 |---|---|---|
 | [0001](0001-python-runtime-and-toolchain.md) | Runtime, packaging, quality tools, HTTP, parsing, validation, logging | Python 3.14, uv, Ruff, mypy, pytest, HTTPX, lxml, Pydantic Settings; synchronous first |
 | [0002](0002-database-strategy.md) | Local, MVP, production database, migration path | PostgreSQL 18 from Phase 1 onward; SQLite only for bounded disposable uses |
@@ -24,7 +24,7 @@ An ADR changes to `Accepted` only after explicit product-owner approval. If the 
 | [0010](0010-continuous-integration.md) | Phase 1 quality gates | GitHub Actions with locked dependencies, PostgreSQL integration, and secret scanning |
 | [0011](0011-cost-model.md) | Architecture-level cost posture | Local-first, one relational service in production, defer variable-cost providers |
 
-## Approval dependencies
+## Decision dependencies
 
 - ADR 0002 controls the target exercised by ADRs 0003, 0009, and 0010.
 - ADR 0001 supplies the runtime assumed by ADRs 0003, 0004, 0006, and 0010.

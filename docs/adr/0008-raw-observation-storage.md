@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -10,7 +10,7 @@ Replayable source evidence is valuable for parser changes and audits, but raw HT
 
 ## Decision
 
-If Gate A approves:
+Gate A accepts the following decision:
 
 ### Phase 1 preparation
 
@@ -62,7 +62,7 @@ Retention is tiered and versioned:
 
 ## Follow-up/validation
 
-- Gate A approves the staged boundary, not any live capture.
+- Gate A accepted the staged boundary, not any live capture.
 - Gate B defines capture/fixture/retention permission per source before access.
 - Phase 2 tests immutable metadata, checksum verification, missing/expired object behavior, replay eligibility, and non-cascading expiry with synthetic data.
 - Before production raw retention, define encryption, RPO/RTO, lifecycle cost, legal deletion, and restore verification.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -10,7 +10,7 @@ The primary contributor environment is macOS. The workflow should be reproducibl
 
 ## Decision
 
-If Gate A approves ADRs 0001 and 0002:
+With ADRs 0001 and 0002 accepted:
 
 - install/select ADR 0001's latest supported Python 3.14.x patch and manage the selected patch with uv;
 - run Python commands from the host through `uv run`;
@@ -41,7 +41,7 @@ This ADR is conceptual. It does not authorize or add a Compose file, project ske
 - **Dockerize the entire development environment:** maximizes parity but slows inner-loop Python tooling and adds container complexity without demonstrated benefit.
 - **SQLite local development:** simpler startup but conflicts with the recommended one-engine strategy and can hide database semantics.
 - **Hosted development database:** avoids a local service but creates network, secret, cost, availability, and privacy dependencies before Gate D.
-- **No Compose support:** leaves the main source of local setup drift unresolved despite PostgreSQL being the proposed foundation.
+- **No Compose support:** leaves the main source of local setup drift unresolved despite PostgreSQL being the accepted foundation.
 
 ## Consequences
 
@@ -59,7 +59,7 @@ This ADR is conceptual. It does not authorize or add a Compose file, project ske
 
 ## Follow-up/validation
 
-- Gate A approves the default and native fallback.
+- Gate A accepted the default and native fallback.
 - In Phase 1, verify a clean macOS setup with the managed Python 3.14.x patch and current supported PostgreSQL 18 minor, empty migration, test run, and non-destructive stop/restart.
 - Document a precise, recoverable local reset and restore check without broad deletion commands.
 - Reassess Docker only if contributor burden outweighs database parity.

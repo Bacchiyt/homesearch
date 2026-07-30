@@ -8,7 +8,7 @@ Read with [Conceptual data model](../data-model.md) and [Tracking/notification r
 
 Represent configured users/destinations without embedding personal values in code. A single-user implementation is acceptable, but user-scoped tracking/evaluation should not be accidentally precluded. Encrypt or secret-reference destinations as appropriate and redact exports/logs.
 
-[ADR 0007](../adr/0007-initial-user-scope.md) proposes one logical user with explicit `user_id`, secret-referenced destinations, and no early authentication. It remains unapproved.
+[ADR 0007](../adr/0007-initial-user-scope.md) accepts one logical user with explicit `user_id`, secret-referenced destinations, and no early authentication.
 
 ### `TrackingPreference`
 
@@ -84,7 +84,7 @@ Source/search part of a run with exact source/config/search versions, cursor bef
 
 Durable typed/versioned payload with idempotency key, due/priority/state, attempts, lease owner/expiry, timeout, structured error, parent run/job, and timestamps. Physical storage versus broker is an ADR.
 
-[ADR 0005](../adr/0005-scheduling-and-durable-jobs.md) proposes deferring this entity and all scheduler/worker machinery until Phase 6, then using PostgreSQL-backed leases unless measurements justify a broker.
+[ADR 0005](../adr/0005-scheduling-and-durable-jobs.md) defers this entity and all scheduler/worker machinery until Phase 6, then selects PostgreSQL-backed leases unless measurements justify a broker.
 
 ### `SourceHealthIncident`
 
@@ -166,7 +166,7 @@ Raw retention, destination privacy, legal deletion, and notification-payload ret
 
 ## Schema decisions
 
-Gate A proposals awaiting approval:
+Accepted Gate A decisions:
 
 - [ADR 0002](../adr/0002-database-strategy.md): local/MVP/production database and migration/restore path;
 - [ADR 0003](../adr/0003-database-access-and-migrations.md): SQLAlchemy/transactions, Alembic, UUIDv7, and time conventions;

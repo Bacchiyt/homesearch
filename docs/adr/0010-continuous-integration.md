@@ -2,15 +2,15 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
-Phase 1 must make the approved foundation reproducible without live sources, external APIs, production credentials, or infrastructure. Because PostgreSQL is the proposed database from the first migration, SQLite-only CI is insufficient. CI should catch formatting, typing, unit, migration, integration, and secret-safety failures while remaining low cost.
+Phase 1 must make the approved foundation reproducible without live sources, external APIs, production credentials, or infrastructure. Because PostgreSQL is the accepted database from the first migration, SQLite-only CI is insufficient. CI should catch formatting, typing, unit, migration, integration, and secret-safety failures while remaining low cost.
 
 ## Decision
 
-If Gate A approves, Phase 1 will use GitHub Actions with:
+Gate A accepts GitHub Actions for Phase 1 with:
 
 - a pinned Ubuntu runner image and a deliberately managed exact CPython patch at the latest supported 3.14.x release selected under ADR 0001;
 - uv installed through a pinned, verified mechanism;
@@ -54,7 +54,7 @@ Required checks become branch-protection candidates after the workflow exists an
 
 ## Follow-up/validation
 
-- Gate A approves the CI gates and PostgreSQL requirement.
+- Gate A accepted the CI gates and PostgreSQL requirement.
 - Phase 1 adds the workflow, pins external actions by full commit SHA where practical, and documents local equivalents.
 - Verify a clean checkout passes with no repository secret.
 - Treat Python 3.14.x patch and PostgreSQL 18 minor upgrades as managed maintenance changes that must pass the full workflow; they do not require a new ADR unless they materially change an architectural decision.

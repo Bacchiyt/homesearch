@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -10,7 +10,7 @@ Homesearch is initially a personal system for one operator and one logical recip
 
 ## Decision
 
-If Gate A approves:
+Gate A accepts the following decision:
 
 - model one logical `User` with an opaque application-generated `user_id`;
 - carry `user_id` on user-owned durable concepts when they are introduced, including tracking preferences, evaluation/profile selection, notification destinations, notifications, action tokens, and reports;
@@ -47,7 +47,7 @@ Shared source observations and canonical property facts remain global evidence. 
 
 ## Follow-up/validation
 
-- Gate A approves the single logical user and initial ownership boundaries.
+- Gate A accepted the single logical user and initial ownership boundaries.
 - Phase 1 defines only the user/config anchors needed by its approved schema; do not create auth.
 - When tracking/evaluation/notification tables arrive, test user-scoped uniqueness and destination redaction.
 - Before public access or a second user, write an authentication/authorization/privacy ADR and threat model.

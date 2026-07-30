@@ -6,7 +6,7 @@ Homesearch is a long-lived personal system for discovering, normalizing, enrichi
 
 1. Start at `docs/README.md`; read the core overview and only the task-specific documents it routes to.
 2. Inspect the current implementation, migrations, tests, configuration, and decisions before changing structure.
-3. Work only within the smallest approved roadmap phase. Phase 1 is not approved until the user explicitly passes Gate A.
+3. Work only within the smallest approved roadmap phase. Gate A has passed and Phase 1 is authorized; later phases and gates still require their documented prerequisites.
 4. Record uncertainty instead of inventing behavior, source permissions, provider capabilities, pricing, or data certainty.
 5. Update the relevant docs and ADRs when a durable boundary or decision changes.
 
