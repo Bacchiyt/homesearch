@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "source_external_id": "fixture-listing-001",
+  "canonical_url": "https://fixtures.invalid/listings/fixture-listing-001",
+  "observed_at": "2026-08-01T00:00:00Z",
+  "listing": {
+    "headline": "南向きの吹抜けがある新築戸建て",
+    "price": "4280万円",
+    "address": "神奈川県架空市架空町1-2-3",
+    "status": "掲載中"
+  }
+}

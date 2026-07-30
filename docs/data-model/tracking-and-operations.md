@@ -80,6 +80,8 @@ Top-level scheduled/manual discovery, tracking, enrichment, or report run with t
 
 Source/search part of a run with exact source/config/search versions, cursor before/after, request/listing/observation/parse/property/match counts, timing/state, structured failures, and cooldown/rate data. Failure cannot imply disappearance.
 
+Observation counts are backed by durable `SourceRunObservation` receipts. Multiple valid command contexts may reference one deduplicated immutable observation without losing the provenance of any run.
+
 ### `Job`
 
 Durable typed/versioned payload with idempotency key, due/priority/state, attempts, lease owner/expiry, timeout, structured error, parent run/job, and timestamps. Physical storage versus broker is an ADR.

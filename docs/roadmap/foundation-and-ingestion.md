@@ -39,6 +39,8 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 
 **Progress:** independently reviewed tasks now provide the Python 3.14/uv package and local quality commands, strict layered configuration, the one-user/default-user UUIDv7 anchor, and empty-by-default source/search policies. The accepted synchronous SQLAlchemy 2/psycopg 3 boundary resolves only a configured secret, and local PostgreSQL 18.4 Compose provides loopback-only access, ignored file-backed credentials, health checking, and named storage. Alembic uses the same configuration/engine boundary; its first revision creates safe configuration snapshots, user/source identities, separate property/listing anchors, and a user-owned top-level run ledger. Matching Core metadata is drift-checked against that migration-backed schema. A narrow application port and connection-based unit of work now atomically and idempotently persist the safe effective snapshot plus configured user/source anchors with application-owned UUIDv7 IDs and UTC instants; conflicts and uncommitted work roll back without leaking connections. GitHub Actions reproduces the locked toolchain, formatting, lint, typing, empty-database migration, schema-drift, PostgreSQL integration, and secret-scanning gates with pinned actions and ephemeral CI-only database credentials. No rows are seeded automatically and no search is enabled by default. Property/listing/run repositories and workflows, source/provider adapters, polling, scheduling/jobs, and structured logging remain separate follow-up tasks.
 
+**MVP baseline:** after PR #14 merged, the product owner designated current `main` as the Phase 1 MVP baseline and explicitly authorized Phase 2. Structured logging and unused property/listing/run workflows were not represented as complete; they remain deferred rather than being bundled into the first ingestion slice.
+
 **Deliverables:**
 
 - implementation of the explicitly Accepted Gate A ADRs, with any material deviation recorded before code changes;
@@ -78,6 +80,8 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 ## Phase 2 — Source contracts and raw observation ingestion
 
 **Goal:** prove immutable ingestion using synthetic/manual fixtures only.
+
+**Progress:** the first vertical slice implements a fixture-only typed source boundary, checksum/provenance-verified synthetic JSON adapter, adapter-neutral normalized observation/fact result, and one migration adding normalized source-listing identity, source runs, run-observation receipts, raw-object metadata, immutable observations, versioned parse runs, and source facts. The existing explicit unit of work persists the configured user/source/search/configuration lineage and the complete evidence set atomically. PostgreSQL uniqueness constraints make repeated execution one logical effect; distinct valid command contexts receive separate run receipts while identical immutable evidence remains deduplicated. Tests cover adapter integrity, migration upgrade/downgrade, schema drift, cross-context run provenance, and fixture → adapter → application → PostgreSQL behavior. Other capture modes, raw-object lifecycle/expiry, parser replay variants, structured failures, and broader discovery/fetch/status contracts remain follow-up Phase 2 slices.
 
 **Deliverables:**
 

@@ -5,10 +5,10 @@ This index is the required starting point for project work. Read the core overvi
 ## Current status
 
 - Phase 0 design is complete and Gate A passed on 2026-07-30 after explicit product-owner approval.
-- [Gate A ADRs 0001–0011](adr/README.md) are `Accepted`, and Phase 1 is in progress within its documented scope.
-- Phase 1 now includes the Python 3.14/uv bootstrap, strict versioned configuration, explicit user/source/search identities, a secret-safe synchronous SQLAlchemy 2/psycopg 3 boundary, local PostgreSQL 18.4 Compose, the first Alembic schema, matching Core metadata, a per-use-case connection/transaction unit of work, atomic idempotent persistence of safe configuration snapshots plus configured user/source anchors, and GitHub Actions quality/secret-scanning gates. Property/listing/run repositories and workflows and structured logging remain unimplemented.
-- Search policies can validate source-neutral areas, price/property criteria, intervals/limits, and user/source references, but no search is configured by default and no polling, source adapter, or scheduler is implemented.
-- Live source access, external API setup, email delivery, infrastructure creation, credentials, and deployment remain unauthorized by Gate A.
+- [Gate A ADRs 0001–0011](adr/README.md) are `Accepted`. After PR #14 merged, the product owner designated current `main` as the Phase 1 MVP baseline and authorized Phase 2.
+- Phase 2 is in progress with a first non-live vertical slice: a checksum-verified synthetic JSON adapter produces a normalized immutable observation and source facts, and one explicit PostgreSQL transaction idempotently persists its configured run/source/search lineage, durable run-observation receipt, normalized listing identity, raw-object metadata, parse result, and facts through an Alembic-backed schema.
+- Search policies can validate source-neutral areas, price/property criteria, intervals/limits, and user/source references, but no search is configured by default and no polling, live/network source adapter, or scheduler is implemented.
+- The tracked fixture is explicitly synthetic and non-live. No live source access, Gate B approval, external API, email delivery, production infrastructure, credential, or deployment is included.
 
 ## Core overview
 
