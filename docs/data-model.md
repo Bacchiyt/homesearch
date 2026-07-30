@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This is the conceptual persistence model, not final SQL. Gate A must first choose local-development, early/MVP, and production persistence plus a migration path. Physical types, indexes, enum representation, IDs, PostGIS, ORM mapping, partitioning, and bitemporal depth remain later ADR/schema decisions.
+This is the conceptual persistence model, not final SQL. Gate A must first choose local-development, early/MVP, and production persistence plus a migration path. Proposed [database strategy](adr/0002-database-strategy.md) and [database access](adr/0003-database-access-and-migrations.md) ADRs recommend PostgreSQL 18, SQLAlchemy/Alembic, UUIDv7, and UTC-aware instants, but remain unapproved. Indexes, enum representation, PostGIS, detailed mappings, partitioning, and bitemporal depth remain later schema decisions.
 
 The model must:
 
@@ -21,6 +21,8 @@ The model must:
 ### Identifiers
 
 Every durable entity uses an opaque internal immutable surrogate ID. External IDs, URLs, 建築確認番号, addresses, and hashes are attributes/evidence, never primary keys.
+
+[ADR 0003](adr/0003-database-access-and-migrations.md) proposes application-generated UUIDv7 for new durable IDs. UUID order is never a substitute for an explicit recorded time.
 
 ### Time
 

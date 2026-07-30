@@ -4,8 +4,8 @@ This index is the required starting point for project work. Read the core overvi
 
 ## Current status
 
-- Phase 0 documentation has been drafted and is awaiting review/approval.
-- Gate A has not been approved.
+- Phase 0 design documents and the [Gate A ADR proposals](adr/README.md) have been drafted.
+- Every Gate A ADR is `Proposed`; none is accepted and Gate A has not been approved.
 - Do **not** start Phase 1, live source access, external API setup, email delivery, infrastructure creation, or deployment.
 
 ## Core overview
@@ -27,8 +27,9 @@ Read these short entry points for any major task:
 | Location, amenities, gym, hazards, transport, terrain, or layout evaluation | [Enrichment and evaluation requirements](product/enrichment-and-evaluation.md), [Provider and deployment architecture](architecture/deployment-and-providers.md), [Enrichment and evaluation model](data-model/enrichment-and-evaluation.md), [Roadmap: enrichment and operations](roadmap/enrichment-and-operations.md) |
 | Notification readiness, deadlines, events, delivery, secure actions, tracking, reporting, or manual review | [Tracking and reporting requirements](product/tracking-notifications-and-reporting.md), [Pipeline and interfaces](architecture/pipeline-and-interfaces.md), [Jobs and operations](architecture/jobs-and-operations.md), [Tracking and operations model](data-model/tracking-and-operations.md), [Roadmap: domain and tracking](roadmap/domain-and-tracking.md) |
 | Scheduler, jobs, observability, failure handling, testing, backup, deployment, portability, or cost | [Quality and open decisions](product/quality-and-decisions.md), [Jobs and operations](architecture/jobs-and-operations.md), [Provider and deployment architecture](architecture/deployment-and-providers.md), [Roadmap](roadmap.md), [Roadmap: enrichment and operations](roadmap/enrichment-and-operations.md) |
-| Database strategy, schema, persistence, or migrations | [Quality and open decisions](product/quality-and-decisions.md), [Architecture](architecture.md), [Data model](data-model.md), and [Roadmap: foundation and ingestion](roadmap/foundation-and-ingestion.md) |
-| Durable technology/provider decision | [Quality and open decisions](product/quality-and-decisions.md), [Provider and deployment architecture](architecture/deployment-and-providers.md), and the ADR backlog in [Roadmap](roadmap.md) |
+| Database strategy, schema, persistence, or migrations | [Database strategy ADR](adr/0002-database-strategy.md), [Database access ADR](adr/0003-database-access-and-migrations.md), [Data model](data-model.md), and [Roadmap: foundation and ingestion](roadmap/foundation-and-ingestion.md) |
+| Gate A runtime, configuration, local workflow, CI, user scope, web, storage, jobs, or cost review | [ADR index](adr/README.md), then only the ADRs it routes to |
+| Later durable technology/provider decision | [Quality and open decisions](product/quality-and-decisions.md), [Provider and deployment architecture](architecture/deployment-and-providers.md), and the later backlog in [Roadmap](roadmap.md) |
 
 ## Document tree
 
@@ -58,6 +59,9 @@ docs/
     foundation-and-ingestion.md
     domain-and-tracking.md
     enrichment-and-operations.md
+  adr/
+    README.md
+    0001-... through 0011-...
 ```
 
 ## Documentation ownership
@@ -66,4 +70,4 @@ docs/
 - Architecture files define component responsibilities and provider-independent boundaries.
 - Data-model files define conceptual entities, relationships, history, and constraints; they are not final SQL.
 - Roadmap files define authorization gates, implementation order, tests, and completion criteria.
-- ADRs, once introduced, record approved durable choices without rewriting historical reasoning.
+- ADRs record proposed, accepted, superseded, or rejected durable choices without rewriting accepted history.

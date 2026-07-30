@@ -10,45 +10,50 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 
 - `AGENTS.md` and `docs/README.md`;
 - product, architecture, data-model, and roadmap entry points plus focused documents;
-- explicit risks, uncertainties, ADR candidates, and deferred work.
+- explicit risks, uncertainties, ADR candidates, and deferred work; and
+- a documentation-only [Gate A proposal set](../adr/README.md) with alternatives, consequences, validation, and owner approval still pending.
 
 **Tests/review:**
 
 - trace every originating requirement into the documentation set;
 - verify no production code, credentials, live access, deployment, or external resource;
-- check terminology/invariants/links and Mermaid rendering.
+- check terminology/invariants/links and Mermaid rendering; and
+- verify every Gate A ADR is `Proposed` and does not silently authorize Phase 1.
 
 **Completion criteria:**
 
 - required entry-point files exist and are consistently routed;
 - property/listing/observation, retention, provenance, identity, history, security, and portability are explicit;
 - unresolved decisions are labeled;
-- user approves the foundation.
+- the product owner reviews the proposals and explicitly approves or revises Gate A.
 
 **Dependencies:** none.
 
 **Intentionally deferred:** all implementation and provider/source commitments.
 
-## Phase 1 — Project skeleton, ADRs, configuration, and database foundation
+## Phase 1 — Project skeleton, configuration, and database foundation
 
 **Goal:** minimal runnable/testable foundation without live property collection.
 
 **Deliverables:**
 
-- ADRs for runtime, dependency tooling, formatting/lint/type checking, web, database strategy/access, migrations, IDs, configuration, tests, and jobs;
+- implementation of the explicitly Accepted Gate A ADRs, with any material deviation recorded before code changes;
 - modular package skeleton;
 - safe configuration schema, environment overlays, and secret references;
 - placeholder-only `.env.example`;
 - Gate A-approved local-development and early/MVP persistence workflow;
-- documented production relational target and migration path, with PostgreSQL/PostGIS remaining the likely option unless Gate A decides otherwise;
-- initial migrations for configuration versions, sources, listing/property anchors, runs, jobs, and migration metadata;
+- documented production relational target and tested migration path;
+- if [ADR 0002](../adr/0002-database-strategy.md) is accepted, a PostgreSQL 18 local/CI foundation;
+- initial migrations for the approved configuration, user/source, listing/property anchor, run-ledger, and migration metadata scope;
 - developer commands/CI and structured correlation logging.
+
+[ADR 0005](../adr/0005-scheduling-and-durable-jobs.md) proposes deferring the scheduler, worker daemon, and durable `Job` table until Phase 6.
 
 **Tests:**
 
 - configuration validation and invalid thresholds/intervals/missing references;
 - selected-store migration from empty and upgrade smoke test;
-- compatibility tests that expose differences in concurrency, types, constraints, transactions, and geospatial behavior relevant to the likely production target;
+- target-database tests that expose differences in concurrency, types, constraints, transactions, JSON/time semantics, and geospatial behavior relevant to the approved production target;
 - if SQLite is used for a bounded purpose, target-compatible tests proving business/persistence logic does not depend on SQLite behavior;
 - secret scan/redaction;
 - module-boundary checks where supported.
@@ -58,13 +63,13 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 - documented contributor setup;
 - deterministic tests/lint/types;
 - the selected local/MVP store migrates from empty and reports version;
-- the database ADR records local, early/MVP, production-target, and migration-path decisions plus required target-database test coverage;
+- Accepted ADRs record local, early/MVP, production-target, migration-path, runtime, configuration, user-scope, and CI decisions;
 - no production service/secret needed;
-- Gate A ADRs resolved or explicitly deferred.
+- Gate A ADRs are Accepted or explicitly deferred without leaving an implementation dependency unresolved.
 
 **Dependencies:** approved Phase 0 and Gate A.
 
-**Intentionally deferred:** source adapters, raw payload storage, broad schema, live scheduler, external calls, deployment.
+**Intentionally deferred:** source adapters, raw payload storage, broad schema, scheduler/worker/job engine, external calls, deployment.
 
 ## Phase 2 — Source contracts and raw observation ingestion
 
