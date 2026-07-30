@@ -4,9 +4,9 @@ Homesearch is a personal system for discovering, normalizing, enriching, evaluat
 
 ## Current implementation scope
 
-Phase 1 currently provides the Python project/toolchain bootstrap, the versioned configuration foundation, and the synchronous PostgreSQL connection boundary. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults define one explicit non-secret UUIDv7 user plus empty source and search registries; no source or search is configured, and no source is authorized for access.
+Phase 1 currently provides the Python project/toolchain bootstrap, the versioned configuration foundation, the synchronous PostgreSQL connection boundary, and a local PostgreSQL 18.4 Docker Compose service. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults define one explicit non-secret UUIDv7 user plus empty source and search registries; no source or search is configured, and no source is authorized for access.
 
-Database schemas, migrations, actual PostgreSQL connections, Docker Compose, CI, authentication, destinations, source adapters, polling/scheduler behavior, tracking schedules, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
+Database schemas, migrations, application-owned PostgreSQL connections, CI, authentication, destinations, source adapters, polling/scheduler behavior, tracking schedules, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
 
 ## Local setup
 
@@ -35,6 +35,44 @@ Configuration precedence is:
 Calling `load_configuration()` with no argument reads that allowlist from the process environment and optional `.env`. Passing an `OperationalSettings` object instead treats it as the complete explicit input and does not consult ambient environment or dotenv values.
 
 The database adapter resolves `HOMESEARCH_DATABASE_URL` only when the active versioned configuration declares the corresponding secret reference. It requires an explicit `postgresql+psycopg://.../<database>` URL and constructs a synchronous SQLAlchemy engine lazily. Engine construction does not contact PostgreSQL; connection and transaction ownership will be introduced with the migration and persistence workflows that require them.
+
+### Local PostgreSQL
+
+The default local database workflow requires Docker with Compose v2. `compose.yaml` runs only PostgreSQL, pinned to the current accepted PostgreSQL 18 minor. It publishes PostgreSQL on loopback only and stores its PostgreSQL 18 data root in the named `homesearch-postgres-18-data` volume.
+
+Create an ignored, local-only password before the first start:
+
+```shell
+mkdir -p .secrets
+openssl rand -hex 24 > .secrets/postgres-password
+chmod 600 .secrets/postgres-password
+```
+
+Start PostgreSQL and wait for its health check:
+
+```shell
+docker compose up --detach --wait postgres
+docker compose ps postgres
+docker compose exec -T postgres \
+  psql --username homesearch --dbname homesearch --command 'SHOW server_version;'
+```
+
+To use the existing application connection boundary, select the example profile and supply a URL containing the same local-only password. Keep the URL in the process environment or ignored `.env`; never add it to tracked TOML:
+
+```shell
+export HOMESEARCH_PROFILE_PATH=config/profiles/example.toml
+export HOMESEARCH_DATABASE_URL="postgresql+psycopg://homesearch:$(tr -d '\n' < .secrets/postgres-password)@127.0.0.1:5432/homesearch"
+```
+
+Set `HOMESEARCH_POSTGRES_PORT` before Compose commands if host port `5432` is unavailable, and use the same port in `HOMESEARCH_DATABASE_URL`.
+
+Stop the service without deleting data:
+
+```shell
+docker compose stop postgres
+```
+
+`docker compose down` removes the container and project network but retains `homesearch-postgres-18-data`; the next `up` reuses it. The named volume is local persistence, not a backup. Only when all local data is intentionally disposable, `docker compose down --volumes` removes this project’s named volume and makes the next start initialize an empty database.
 
 `user_scope` is version-controlled, contains no personal profile or destination data, and currently permits exactly one user. Its explicit `default_user_id` prevents later persistence and command code from relying on a hidden process-wide singleton.
 
