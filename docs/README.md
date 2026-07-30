@@ -6,7 +6,7 @@ This index is the required starting point for project work. Read the core overvi
 
 - Phase 0 design is complete and Gate A passed on 2026-07-30 after explicit product-owner approval.
 - [Gate A ADRs 0001–0011](adr/README.md) are `Accepted`, and Phase 1 is in progress within its documented scope.
-- Phase 1 now includes the Python 3.14/uv bootstrap, strict versioned configuration loading, the explicit one-user/default-user anchor, configuration schema version 3's empty-by-default source-policy registry, schema version 4's empty-by-default search-policy registry, and a secret-safe synchronous SQLAlchemy 2/psycopg 3 PostgreSQL engine boundary. Database schemas, migrations, Compose, repositories, structured logging, and CI remain unimplemented.
+- Phase 1 now includes the Python 3.14/uv bootstrap, strict versioned configuration loading, the explicit one-user/default-user anchor, configuration schema version 3's empty-by-default source-policy registry, schema version 4's empty-by-default search-policy registry, a secret-safe synchronous SQLAlchemy 2/psycopg 3 PostgreSQL engine boundary, and a local PostgreSQL 18.4 Compose service with ignored file-backed credentials and named persistent storage. Database schemas, migrations, repositories, structured logging, and CI remain unimplemented.
 - Search policies can validate source-neutral areas, price/property criteria, intervals/limits, and user/source references, but no search is configured by default and no polling, source adapter, or scheduler is implemented.
 - Live source access, external API setup, email delivery, infrastructure creation, credentials, and deployment remain unauthorized by Gate A.
 

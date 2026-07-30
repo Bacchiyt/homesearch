@@ -1,0 +1,34 @@
+name: homesearch
+
+services:
+  postgres:
+    image: postgres:18.4-bookworm
+    environment:
+      POSTGRES_DB: homesearch
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+      POSTGRES_USER: homesearch
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready --username=$$POSTGRES_USER --dbname=$$POSTGRES_DB",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    ports:
+      - "127.0.0.1:${HOMESEARCH_POSTGRES_PORT:-5432}:5432"
+    secrets:
+      - postgres-password
+    shm_size: 128mb
+    volumes:
+      - homesearch-postgres-data:/var/lib/postgresql
+
+secrets:
+  postgres-password:
+    file: ${HOMESEARCH_POSTGRES_PASSWORD_FILE:-.secrets/postgres-password}
+
+volumes:
+  homesearch-postgres-data:
+    name: homesearch-postgres-18-data
