@@ -12,17 +12,17 @@ Phase 1 must make the approved foundation reproducible without live sources, ext
 
 If Gate A approves, Phase 1 will use GitHub Actions with:
 
-- a pinned Ubuntu runner image and CPython 3.14;
+- a pinned Ubuntu runner image and a deliberately managed exact CPython patch at the latest supported 3.14.x release selected under ADR 0001;
 - uv installed through a pinned, verified mechanism;
 - `uv sync --locked` against the committed lockfile;
 - `ruff check` and `ruff format --check`;
 - mypy for the configured source modules;
 - pytest for unit, contract, and PostgreSQL integration tests;
-- a PostgreSQL 18 service container matching the local major;
+- a PostgreSQL service container deliberately pinned to ADR 0002's current supported PostgreSQL 18 minor and aligned with the managed local/CI target;
 - Alembic upgrade from an empty database to `head`, application schema-version smoke check, and `alembic check` for unrepresented model changes where reliable;
 - a second migration/transaction test path when needed to expose upgrade or concurrency behavior;
 - Gitleaks, pinned to a reviewed version/digest, for repository secret scanning, plus platform-native protection when available; and
-- dependency caches keyed by platform, Python version, and `uv.lock`, never containing secrets or database data.
+- dependency caches keyed by platform, exact Python patch, and `uv.lock`, never containing secrets or database data.
 
 CI contains no live source access, recipient, external provider call, long-lived credential, production endpoint, or deployment step. Representative source tests use permitted/synthetic fixtures only. PostgreSQL service credentials are ephemeral non-production test values.
 
@@ -42,6 +42,7 @@ Required checks become branch-protection candidates after the workflow exists an
 - Pull requests receive deterministic quality feedback before merge.
 - PostgreSQL startup increases CI duration but eliminates a separate compatibility lane.
 - Tool versions and runner assumptions require periodic maintenance.
+- Supported Python 3.14.x patches and PostgreSQL 18 minors must be advanced intentionally rather than drifting or remaining stale.
 - Migration and secret-scan checks become part of the definition of done.
 
 ## Risks/trade-offs
@@ -56,6 +57,7 @@ Required checks become branch-protection candidates after the workflow exists an
 - Gate A approves the CI gates and PostgreSQL requirement.
 - Phase 1 adds the workflow, pins external actions by full commit SHA where practical, and documents local equivalents.
 - Verify a clean checkout passes with no repository secret.
+- Treat Python 3.14.x patch and PostgreSQL 18 minor upgrades as managed maintenance changes that must pass the full workflow; they do not require a new ADR unless they materially change an architectural decision.
 - Add migration, fixture, security, and provider-fake checks in the roadmap phase that introduces each concern.
 
 ## Date

@@ -14,7 +14,7 @@ Homesearch needs strong Japanese text/HTML processing, typed domain boundaries, 
 
 If Gate A approves this ADR:
 
-- use CPython 3.14, pin the patch version through uv, and declare `requires-python` in `pyproject.toml`;
+- use the latest supported CPython 3.14.x patch release available when Phase 1 begins, manage the selected patch through uv, and declare the approved 3.14 series in `requires-python`;
 - use a single `pyproject.toml`, committed `uv.lock`, and [uv projects](https://docs.astral.sh/uv/guides/projects/) for Python installation, dependency locking, environments, and command execution;
 - use a `src/homesearch/` package layout and a separate `tests/` tree;
 - use Ruff for formatting, import ordering, and linting;
@@ -29,6 +29,8 @@ If Gate A approves this ADR:
 Application services, database access, and source adapters are synchronous by default. A measured adapter may use asynchronous I/O internally later, but it must expose the same typed application port and cannot force the domain or persistence layer to become async. A future FastAPI surface may run synchronous application services through its supported execution model.
 
 Dependency ranges belong in `pyproject.toml`; exact transitive versions belong in `uv.lock`. Phase 1 validates that selected releases support Python 3.14 before implementation proceeds.
+
+Python 3.14 is the architecture-level runtime baseline; an early 3.14 patch is not a permanent target. Local setup, CI, and deployment configuration use deliberately managed exact patch versions where reproducibility requires them. A supported patch upgrade within the approved 3.14 series does not require a new ADR, but it must update the managed pins intentionally and pass the full CI suite before adoption. Changing the approved Python feature series requires architecture review.
 
 ## Alternatives considered
 
@@ -47,6 +49,7 @@ Dependency ranges belong in `pyproject.toml`; exact transitive versions belong i
 - Native dependencies used by lxml must have compatible wheels or documented macOS/CI build support.
 - Async performance is not available automatically; adoption requires evidence and an adapter-scoped design.
 - Python 3.14 narrows dependency choices until the ecosystem catches up, so the Phase 1 compatibility validation is blocking.
+- Managed patch pins require routine updates as supported Python 3.14.x releases replace older patches.
 
 ## Risks/trade-offs
 
@@ -58,8 +61,9 @@ Dependency ranges belong in `pyproject.toml`; exact transitive versions belong i
 ## Follow-up/validation
 
 - At Gate A, approve the runtime and sync-first boundary.
-- In Phase 1, resolve and lock a Python 3.14-compatible dependency set.
+- In Phase 1, select the latest supported Python 3.14.x patch, record the managed local/CI pin, and resolve a compatible dependency set.
 - Prove `uv sync --locked`, Ruff, mypy, and pytest on macOS and CI.
+- Require every later 3.14.x patch upgrade to pass the same CI gates before updating local or deployment pins.
 - Test HTTP timeout/connection lifecycle and structured-log redaction.
 - Reconsider async only after measured concurrency, latency, or hosting constraints show a material benefit.
 

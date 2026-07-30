@@ -19,7 +19,8 @@ If ADR 0002's PostgreSQL recommendation is approved:
 - keep session/transaction ownership at the application use-case boundary; repositories do not commit independently;
 - use explicit eager/loading queries and avoid implicit database access from domain objects;
 - allow PostgreSQL features only inside adapter implementations and migrations, with capability tests and a portable logical export shape;
-- use application-generated UUIDv7 for new durable entity IDs, stored in PostgreSQL's native `uuid` type;
+- make the application layer the default explicit owner of new durable entity IDs, using Python 3.14's standard-library UUIDv7 generation and storing results in PostgreSQL's native `uuid` type;
+- permit PostgreSQL 18's native UUIDv7 capability only for a deliberately database-owned entity or write path documented in schema/repository design; never mix implicit application and database generation for the same entity/write contract;
 - accept UUIDv4 for external/imported legacy records only when preserving an existing identity; and
 - store system instants as timezone-aware UTC values using PostgreSQL `timestamptz`.
 
@@ -41,13 +42,14 @@ Migrations are forward-oriented. Every migration supplies a forward-repair plan;
 - **Async SQLAlchemy/psycopg:** useful under demonstrated concurrent I/O, but adds session/task safety and testing complexity inconsistent with ADR 0001's sync-first proposal.
 - **ULID:** sortable and compact in text, but UUIDv7 is standardized, supported by Python 3.14, and maps directly to PostgreSQL `uuid`.
 - **UUIDv4:** simple and ubiquitous, but loses time ordering/locality for new records.
-- **Database-generated IDs:** centralizes generation but makes offline object construction, deterministic tests, and cross-boundary event identity harder.
+- **Database-generated IDs as the universal default:** PostgreSQL 18 provides native UUIDv7 capability, but universal database ownership makes offline construction, deterministic tests, and cross-boundary event identity harder. A bounded database-owned path remains available when its ownership is explicit and consistently tested.
 
 ## Consequences
 
 - Domain tests can run without a database, while persistence contract tests use PostgreSQL.
 - SQLAlchemy models and repository DTO mapping add explicit code but prevent ORM leakage.
 - UUIDv7 improves chronological locality without making IDs a substitute for recorded timestamps.
+- Explicit generation ownership prevents caller-dependent defaults and mixed implicit ID behavior.
 - Native PostgreSQL types and transaction semantics remain visible in integration tests.
 - Alembic becomes part of every schema-changing pull request and deployment.
 
@@ -56,13 +58,15 @@ Migrations are forward-oriented. Every migration supplies a forward-repair plan;
 - Repository abstractions can become generic CRUD layers that hide useful queries; ports should be use-case shaped.
 - UUIDv7 reveals coarse creation time and must not be treated as a secret.
 - Clock rollback and externally supplied IDs still require collision/validation safeguards.
+- Database defaults, bulk paths, or imports can accidentally bypass application ownership unless schema and repository contract tests assert the chosen generator.
 - `timestamptz` normalizes instants but cannot represent uncertain source precision by itself.
 - Alembic autogeneration cannot prove data-migration correctness.
 
 ## Follow-up/validation
 
 - Gate A approves SQLAlchemy, sync access, Alembic, UUIDv7, and time semantics together.
-- Phase 1 tests transaction rollback, unique/check/foreign-key constraints, UUID and UTC round trips, migration from empty, upgrade, and forward repair.
+- Phase 1 tests transaction rollback, unique/check/foreign-key constraints, Python-generated UUIDv7 and UTC round trips, migration from empty, upgrade, and forward repair.
+- Schema and repository tests assert one explicit UUIDv7 owner for each entity/write path, including bulk/import behavior; any PostgreSQL-native generation path must be deliberate and cannot silently coexist with application defaults.
 - Define enum/check-table and JSON-versus-relational choices in schema review before their first migration.
 - Benchmark UUIDv7 indexes and repository queries only when representative data exists.
 

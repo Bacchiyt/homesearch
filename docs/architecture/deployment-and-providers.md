@@ -46,6 +46,7 @@ Processes may share one image/platform. A dedicated broker is intentionally abse
 - Separate infrastructure and secrets.
 - Support logical relational exports and raw-object manifests/copies.
 - Record runtime/schema/parser/rule versions.
+- Deliberately pin or manage the exact supported Python 3.14.x patch and PostgreSQL 18 minor used by a deployment; advance within those approved series only after CI and applicable migration/restore validation.
 - Keep scheduling semantics outside domain code.
 
 ## Backup and recovery

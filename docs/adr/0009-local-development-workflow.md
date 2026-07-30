@@ -12,11 +12,11 @@ The primary contributor environment is macOS. The workflow should be reproducibl
 
 If Gate A approves ADRs 0001 and 0002:
 
-- install/select Python 3.14 and manage the environment with uv;
+- install/select ADR 0001's latest supported Python 3.14.x patch and manage the selected patch with uv;
 - run Python commands from the host through `uv run`;
-- use Docker Compose for a local PostgreSQL 18 service by default because it pins the engine, isolates dependencies, and matches CI/production semantics;
+- use Docker Compose for a local PostgreSQL 18 service at ADR 0002's current supported minor by default, with the image version deliberately managed because it isolates dependencies and matches CI/production semantics;
 - store PostgreSQL data in a named container volume outside the repository;
-- support a native macOS PostgreSQL 18 installation as an equivalent alternative through the same `DATABASE_URL`;
+- support a native macOS installation at a compatible supported PostgreSQL 18 minor as an equivalent alternative through the same `DATABASE_URL`;
 - do not require a local object-store emulator in Phase 1; later synthetic raw objects use the ignored filesystem adapter;
 - keep all credentials, database URLs containing passwords, raw objects, exports, and dumps outside Git; and
 - keep setup/start/stop/migrate/test commands behind documented project tasks once Phase 1 is authorized.
@@ -60,7 +60,7 @@ This ADR is conceptual. It does not authorize or add a Compose file, project ske
 ## Follow-up/validation
 
 - Gate A approves the default and native fallback.
-- In Phase 1, verify a clean macOS setup, pinned PostgreSQL major, empty migration, test run, and non-destructive stop/restart.
+- In Phase 1, verify a clean macOS setup with the managed Python 3.14.x patch and current supported PostgreSQL 18 minor, empty migration, test run, and non-destructive stop/restart.
 - Document a precise, recoverable local reset and restore check without broad deletion commands.
 - Reassess Docker only if contributor burden outweighs database parity.
 
