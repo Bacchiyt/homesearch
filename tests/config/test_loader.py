@@ -34,13 +34,14 @@ def test_repository_defaults_load_with_a_stable_digest() -> None:
     loaded_once = load_configuration(_settings(DEFAULTS))
     loaded_again = load_configuration(_settings(DEFAULTS))
 
-    assert loaded_once.configuration.schema_version == 3
+    assert loaded_once.configuration.schema_version == 4
     assert loaded_once.configuration.config_id == "homesearch-default"
     assert loaded_once.configuration.config_version == 1
     assert str(loaded_once.configuration.user_scope.default_user_id) == DEFAULT_USER_ID
     assert len(loaded_once.configuration.user_scope.users) == 1
     assert loaded_once.configuration.user_scope.users[0].user_id.version == 7
     assert loaded_once.configuration.source_registry.sources == ()
+    assert loaded_once.configuration.search_registry.searches == ()
     assert loaded_once.configuration.runtime.log_level is LogLevel.INFO
     assert loaded_once.configuration.runtime.log_format is LogFormat.JSON
     assert loaded_once.digest == loaded_again.digest
@@ -97,7 +98,7 @@ def test_invalid_initial_user_scope_fails_before_work_starts(
     base = _write_toml(
         tmp_path / "base.toml",
         f"""
-        schema_version = 3
+        schema_version = 4
         config_id = "base"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -106,6 +107,9 @@ def test_invalid_initial_user_scope_fails_before_work_starts(
 
         [source_registry]
         sources = []
+
+        [search_registry]
+        searches = []
 
         [runtime]
         log_level = "INFO"
@@ -137,7 +141,7 @@ def test_layers_apply_in_the_documented_precedence(
     base = _write_toml(
         tmp_path / "base.toml",
         """
-        schema_version = 3
+        schema_version = 4
         config_id = "base"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -151,6 +155,9 @@ def test_layers_apply_in_the_documented_precedence(
         [source_registry]
         sources = []
 
+        [search_registry]
+        searches = []
+
         [runtime]
         log_level = "INFO"
         log_format = "json"
@@ -159,7 +166,7 @@ def test_layers_apply_in_the_documented_precedence(
     profile = _write_toml(
         tmp_path / "profile.toml",
         """
-        schema_version = 3
+        schema_version = 4
         config_id = "profile"
         config_version = 2
         effective_from = 2026-07-31T00:00:00Z
@@ -199,7 +206,7 @@ def test_versioned_profile_can_replace_the_explicit_default_user(
     profile = _write_toml(
         tmp_path / "profile.toml",
         """
-        schema_version = 3
+        schema_version = 4
         config_id = "alternate-user-profile"
         config_version = 1
         effective_from = 2026-07-31T00:00:00Z
@@ -227,7 +234,7 @@ def test_ignored_dotenv_supplies_allowlisted_settings_and_secrets(
     profile = _write_toml(
         tmp_path / "profile.toml",
         """
-        schema_version = 3
+        schema_version = 4
         config_id = "dotenv-profile"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -270,7 +277,7 @@ def test_explicit_operational_settings_ignore_environment_and_dotenv(
     ambient_profile = _write_toml(
         tmp_path / "ambient-profile.toml",
         """
-        schema_version = 3
+        schema_version = 4
         config_id = "ambient-profile"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -318,7 +325,7 @@ def test_explicit_operational_settings_ignore_environment_and_dotenv(
         (
             "base.toml",
             """
-            schema_version = 3
+            schema_version = 4
             config_id = "base"
             config_version = 1
             effective_from = 2026-07-30T00:00:00Z
@@ -333,6 +340,9 @@ def test_explicit_operational_settings_ignore_environment_and_dotenv(
             [source_registry]
             sources = []
 
+            [search_registry]
+            searches = []
+
             [runtime]
             log_level = "INFO"
             log_format = "json"
@@ -342,7 +352,7 @@ def test_explicit_operational_settings_ignore_environment_and_dotenv(
         (
             "profile.toml",
             """
-            schema_version = 3
+            schema_version = 4
             config_id = "profile"
             config_version = 1
             effective_from = 2026-07-30T00:00:00Z
@@ -369,6 +379,14 @@ def test_explicit_operational_settings_ignore_environment_and_dotenv(
             """,
             {"local_config_path": "local-source.toml"},
         ),
+        (
+            "local-search.toml",
+            """
+            [search_registry]
+            searches = []
+            """,
+            {"local_config_path": "local-search.toml"},
+        ),
     ],
 )
 def test_unknown_fields_are_rejected_in_every_layer(
@@ -380,7 +398,7 @@ def test_unknown_fields_are_rejected_in_every_layer(
     base = _write_toml(
         tmp_path / "base.toml",
         """
-        schema_version = 3
+        schema_version = 4
         config_id = "base"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -393,6 +411,9 @@ def test_unknown_fields_are_rejected_in_every_layer(
 
         [source_registry]
         sources = []
+
+        [search_registry]
+        searches = []
 
         [runtime]
         log_level = "INFO"
@@ -411,7 +432,7 @@ def test_unknown_fields_are_rejected_in_every_layer(
 @pytest.mark.parametrize(
     "invalid_line",
     [
-        "schema_version = 2",
+        "schema_version = 3",
         'config_id = "UPPERCASE"',
         "config_version = 0",
         "effective_from = 2026-07-30T09:00:00+09:00",
@@ -422,7 +443,7 @@ def test_invalid_version_metadata_fails_before_work_starts(
     invalid_line: str,
 ) -> None:
     values = {
-        "schema_version": "schema_version = 3",
+        "schema_version": "schema_version = 4",
         "config_id": 'config_id = "base"',
         "config_version": "config_version = 1",
         "effective_from": "effective_from = 2026-07-30T00:00:00Z",
@@ -446,6 +467,9 @@ def test_invalid_version_metadata_fails_before_work_starts(
         [source_registry]
         sources = []
 
+        [search_registry]
+        searches = []
+
         [runtime]
         log_level = "INFO"
         log_format = "json"
@@ -460,7 +484,7 @@ def test_required_secret_reference_must_resolve(tmp_path: Path) -> None:
     profile = _write_toml(
         tmp_path / "profile.toml",
         """
-        schema_version = 3
+        schema_version = 4
         config_id = "database-profile"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -483,7 +507,7 @@ def test_duplicate_secret_references_are_rejected(tmp_path: Path) -> None:
     profile = _write_toml(
         tmp_path / "profile.toml",
         """
-        schema_version = 3
+        schema_version = 4
         config_id = "database-profile"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -509,7 +533,7 @@ def test_secret_values_are_redacted_and_excluded_from_digest(tmp_path: Path) -> 
     profile = _write_toml(
         tmp_path / "profile.toml",
         """
-        schema_version = 3
+        schema_version = 4
         config_id = "database-profile"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -550,7 +574,7 @@ def test_digest_is_independent_of_toml_key_order(tmp_path: Path) -> None:
     first = _write_toml(
         tmp_path / "first.toml",
         """
-        schema_version = 3
+        schema_version = 4
         config_id = "same"
         config_version = 1
         effective_from = 2026-07-30T00:00:00Z
@@ -563,6 +587,9 @@ def test_digest_is_independent_of_toml_key_order(tmp_path: Path) -> None:
 
         [source_registry]
         sources = []
+
+        [search_registry]
+        searches = []
 
         [runtime]
         log_level = "INFO"
@@ -575,7 +602,7 @@ def test_digest_is_independent_of_toml_key_order(tmp_path: Path) -> None:
         effective_from = 2026-07-30T00:00:00Z
         config_version = 1
         config_id = "same"
-        schema_version = 3
+        schema_version = 4
 
         [user_scope]
         default_user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
@@ -585,6 +612,9 @@ def test_digest_is_independent_of_toml_key_order(tmp_path: Path) -> None:
 
         [source_registry]
         sources = []
+
+        [search_registry]
+        searches = []
 
         [runtime]
         log_format = "json"
@@ -607,9 +637,11 @@ def test_environment_cannot_override_unlisted_policy_fields(
     monkeypatch.setenv("HOMESEARCH_CONFIG_VERSION", "999")
     monkeypatch.setenv("HOMESEARCH_DEFAULT_USER_ID", PROFILE_USER_ID)
     monkeypatch.setenv("HOMESEARCH_SOURCE_ID", "unlisted-source")
+    monkeypatch.setenv("HOMESEARCH_SEARCH_ID", "unlisted-search")
 
     loaded = load_configuration()
 
     assert loaded.configuration.config_version == 1
     assert str(loaded.configuration.user_scope.default_user_id) == DEFAULT_USER_ID
     assert loaded.configuration.source_registry.sources == ()
+    assert loaded.configuration.search_registry.searches == ()
