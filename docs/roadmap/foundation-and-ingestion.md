@@ -37,6 +37,8 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 
 **Authorization:** Gate A passed and this phase may begin. No Phase 1 implementation is included in the Gate A acceptance change.
 
+**Progress:** the first independently reviewed task bootstraps the Python 3.14/uv package and local lint, format, type, and test commands. Configuration, persistence, migrations, Compose, and CI remain separate follow-up tasks.
+
 **Deliverables:**
 
 - implementation of the explicitly Accepted Gate A ADRs, with any material deviation recorded before code changes;

@@ -5,8 +5,9 @@ This index is the required starting point for project work. Read the core overvi
 ## Current status
 
 - Phase 0 design is complete and Gate A passed on 2026-07-30 after explicit product-owner approval.
-- [Gate A ADRs 0001–0011](adr/README.md) are `Accepted`, and Phase 1 is authorized to begin within its documented scope.
-- This acceptance update is documentation-only. Live source access, external API setup, email delivery, infrastructure creation, credentials, and deployment remain unauthorized by Gate A.
+- [Gate A ADRs 0001–0011](adr/README.md) are `Accepted`, and Phase 1 is in progress within its documented scope.
+- The first Phase 1 task bootstraps the Python 3.14/uv package and local quality commands. Configuration, persistence, migrations, Compose, and CI remain unimplemented.
+- Live source access, external API setup, email delivery, infrastructure creation, credentials, and deployment remain unauthorized by Gate A.
 
 ## Core overview
 
