@@ -98,7 +98,7 @@ def _temporary_migration_environment(tmp_path: Path) -> Path:
     return migration_root
 
 
-def test_alembic_configuration_has_no_tracked_database_url_or_revisions() -> None:
+def test_alembic_configuration_has_no_tracked_database_url_and_one_initial_head() -> None:
     config = Config(str(ALEMBIC_CONFIG))
     scripts = ScriptDirectory.from_config(config)
     script_location = config.get_main_option("script_location")
@@ -106,18 +106,35 @@ def test_alembic_configuration_has_no_tracked_database_url_or_revisions() -> Non
     assert config.get_main_option("sqlalchemy.url") is None
     assert script_location is not None
     assert Path(script_location).resolve() == Path("migrations").resolve()
-    assert scripts.get_heads() == []
-    assert list(Path("migrations/versions").glob("*.py")) == []
+    assert scripts.get_heads() == ["20260731_0001"]
+    assert [revision.revision for revision in scripts.walk_revisions()] == ["20260731_0001"]
 
 
-def test_empty_revision_tree_upgrade_and_downgrade_are_safe_noops() -> None:
-    upgrade_output = StringIO()
-    upgrade_config = Config(str(ALEMBIC_CONFIG), output_buffer=upgrade_output)
+def test_initial_revision_offline_sql_is_deterministic_and_secret_safe(
+    tmp_path: Path,
+) -> None:
+    password = "initial-revision-offline-password"
+    configuration = _load_with_database_url(
+        tmp_path,
+        f"postgresql+psycopg://homesearch:{password}@localhost:5432/homesearch",
+    )
 
-    command.upgrade(upgrade_config, "head", sql=True)
-    command.downgrade(Config(str(ALEMBIC_CONFIG)), "base")
+    def render_upgrade() -> str:
+        output = StringIO()
+        command.upgrade(
+            _alembic_config(configuration, output_buffer=output),
+            "head",
+            sql=True,
+        )
+        return output.getvalue()
 
-    assert upgrade_output.getvalue() == ""
+    first_render = render_upgrade()
+    second_render = render_upgrade()
+
+    assert first_render == second_render
+    assert "CREATE TABLE configuration_snapshots" in first_render
+    assert "CREATE TABLE polling_runs" in first_render
+    assert password not in first_render
 
 
 def _upgrade_offline(config: Config) -> None:
