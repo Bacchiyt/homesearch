@@ -1,0 +1,69 @@
+# Homesearch Documentation Index
+
+This index is the required starting point for project work. Read the core overview, then only the documents relevant to the task. `AGENTS.md` contains the non-negotiable repository rules.
+
+## Current status
+
+- Phase 0 documentation has been drafted and is awaiting review/approval.
+- Gate A has not been approved.
+- Do **not** start Phase 1, live source access, external API setup, email delivery, infrastructure creation, or deployment.
+
+## Core overview
+
+Read these short entry points for any major task:
+
+- [Product specification](product-spec.md) — product goal, scope, principles, workflows, and requirement map.
+- [Architecture](architecture.md) — system shape, modules, boundaries, and architecture reading map.
+- [Data model](data-model.md) — modeling invariants, relationship overview, and entity reading map.
+- [Roadmap](roadmap.md) — gates, phase overview, cross-phase obligations, and current stop point.
+
+## Task-oriented reading
+
+| Task | Read |
+|---|---|
+| Source discovery, access assessment, parsing, or raw capture | [Source and ingestion requirements](product/source-and-ingestion.md), [Pipeline and interfaces](architecture/pipeline-and-interfaces.md), [Ingestion model](data-model/ingestion.md), [Roadmap: foundation and ingestion](roadmap/foundation-and-ingestion.md) |
+| Property identity, deduplication, normalization, canonical merge, or provenance | [Property and history requirements](product/property-and-history.md), [Pipeline and interfaces](architecture/pipeline-and-interfaces.md), [Identity and provenance model](data-model/identity-and-provenance.md), [Roadmap: domain and tracking](roadmap/domain-and-tracking.md) |
+| Location, amenities, gym, hazards, transport, terrain, or layout evaluation | [Enrichment and evaluation requirements](product/enrichment-and-evaluation.md), [Provider and deployment architecture](architecture/deployment-and-providers.md), [Enrichment and evaluation model](data-model/enrichment-and-evaluation.md), [Roadmap: enrichment and operations](roadmap/enrichment-and-operations.md) |
+| Tracking, events, notifications, secure actions, reporting, or manual review | [Tracking and reporting requirements](product/tracking-notifications-and-reporting.md), [Jobs and operations](architecture/jobs-and-operations.md), [Tracking and operations model](data-model/tracking-and-operations.md), [Roadmap: domain and tracking](roadmap/domain-and-tracking.md) |
+| Scheduler, jobs, observability, failure handling, testing, backup, deployment, portability, or cost | [Quality and open decisions](product/quality-and-decisions.md), [Jobs and operations](architecture/jobs-and-operations.md), [Provider and deployment architecture](architecture/deployment-and-providers.md), [Roadmap](roadmap.md), [Roadmap: enrichment and operations](roadmap/enrichment-and-operations.md) |
+| Schema or migration design | [Data model](data-model.md) plus the domain-specific model file, [Quality and open decisions](product/quality-and-decisions.md), and the applicable roadmap phase |
+| Durable technology/provider decision | [Quality and open decisions](product/quality-and-decisions.md), [Provider and deployment architecture](architecture/deployment-and-providers.md), and the ADR backlog in [Roadmap](roadmap.md) |
+
+## Document tree
+
+```text
+docs/
+  README.md
+  product-spec.md
+  product/
+    source-and-ingestion.md
+    property-and-history.md
+    enrichment-and-evaluation.md
+    tracking-notifications-and-reporting.md
+    quality-and-decisions.md
+  architecture.md
+  architecture/
+    pipeline-and-interfaces.md
+    jobs-and-operations.md
+    deployment-and-providers.md
+  data-model.md
+  data-model/
+    ingestion.md
+    identity-and-provenance.md
+    enrichment-and-evaluation.md
+    tracking-and-operations.md
+  roadmap.md
+  roadmap/
+    foundation-and-ingestion.md
+    domain-and-tracking.md
+    enrichment-and-operations.md
+```
+
+## Documentation ownership
+
+- Product files define required behavior and uncertainty; they do not select implementation details.
+- Architecture files define component responsibilities and provider-independent boundaries.
+- Data-model files define conceptual entities, relationships, history, and constraints; they are not final SQL.
+- Roadmap files define authorization gates, implementation order, tests, and completion criteria.
+- ADRs, once introduced, record approved durable choices without rewriting historical reasoning.
+
