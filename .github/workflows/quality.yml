@@ -36,8 +36,6 @@ jobs:
           --health-retries 12
 
     env:
-      HOMESEARCH_PROFILE_PATH: config/profiles/example.toml
-      HOMESEARCH_DATABASE_URL: postgresql+psycopg://homesearch:homesearch-ci-only@127.0.0.1:5432/homesearch
       HOMESEARCH_TEST_DATABASE_URL: postgresql+psycopg://homesearch:homesearch-ci-only@127.0.0.1:5432/postgres
 
     steps:
@@ -68,6 +66,9 @@ jobs:
         run: uv run mypy
 
       - name: Migrate empty database
+        env:
+          HOMESEARCH_PROFILE_PATH: config/profiles/example.toml
+          HOMESEARCH_DATABASE_URL: postgresql+psycopg://homesearch:homesearch-ci-only@127.0.0.1:5432/homesearch
         run: |
           uv run alembic upgrade head
           uv run alembic current
