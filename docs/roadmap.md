@@ -25,6 +25,10 @@ Before Phase 1:
 
 - approve/revise the Phase 0 documents and modular-monolith direction;
 - choose runtime/toolchain through an ADR;
+- decide and document the local-development database strategy;
+- decide and document the early/MVP persistence strategy;
+- decide the likely production relational target and whether/when PostgreSQL/PostGIS is adopted;
+- define the tested migration path between those stages;
 - decide initial user scoping; and
 - define local-development readiness.
 
@@ -63,7 +67,7 @@ Before production:
 | Phase | Goal | Detailed plan |
 |---:|---|---|
 | 0 | Durable specification and architecture | [Foundation and ingestion](roadmap/foundation-and-ingestion.md#phase-0--durable-specification-and-architecture) |
-| 1 | Skeleton, ADRs, config, PostgreSQL foundation | [Foundation and ingestion](roadmap/foundation-and-ingestion.md#phase-1--project-skeleton-adrs-configuration-and-database-foundation) |
+| 1 | Skeleton, ADRs, config, persistence foundation | [Foundation and ingestion](roadmap/foundation-and-ingestion.md#phase-1--project-skeleton-adrs-configuration-and-database-foundation) |
 | 2 | Source contracts and synthetic/manual raw ingestion | [Foundation and ingestion](roadmap/foundation-and-ingestion.md#phase-2--source-contracts-and-raw-observation-ingestion) |
 | 3 | First approved source | [Foundation and ingestion](roadmap/foundation-and-ingestion.md#phase-3--first-approved-source) |
 | 4 | Normalization and conservative identity resolution | [Domain and tracking](roadmap/domain-and-tracking.md#phase-4--normalization-address-parsing-and-identity-resolution) |
@@ -83,7 +87,7 @@ Before production:
 | Concern | Starts | Continues through |
 |---|---:|---|
 | Configuration and secret safety | 1 | every phase |
-| PostgreSQL migrations | 1 | every schema change |
+| Selected-store migrations and PostgreSQL compatibility/migration path | 1 | every schema change |
 | Observation immutability/replay | 2 | every parser/normalizer change |
 | Parser fixtures/drift | 2–3 | every source change |
 | Identity false positives | 4 | every evidence/algorithm change |
@@ -100,17 +104,16 @@ Before production:
 Create ADRs only when needed:
 
 1. Runtime/type/dependency tooling and web framework.
-2. PostgreSQL access, migrations, IDs/time, and configuration/secrets.
+2. Gate A database strategy: local, MVP, production target, migration path, access layer, migrations, IDs/time, and configuration/secrets.
 3. Database-backed jobs versus queue/scheduler.
 4. Raw storage/retention and PostGIS.
 5. User scoping.
 6. One access/fixture assessment per materially different source.
-7. Field representation/merge policy and identity thresholds/override precedence.
-8. Email/action security.
+7. Field representation/merge policy, marketing-claim aggregation, alias policy, and identity thresholds/override precedence.
+8. Notification readiness/deadline policy and email/action security.
 9. Geocoding, POI, routing/traffic, hazard, and media evidence.
 10. Hosting, backup/recovery, monitoring, and retention.
 
 ## Immediate stop
 
 Phase 0 documents are drafted but await user approval. Do **not** begin Phase 1 until Gate A is explicitly approved.
-

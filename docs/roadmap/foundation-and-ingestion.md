@@ -35,19 +35,21 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 
 **Deliverables:**
 
-- ADRs for runtime, dependency tooling, formatting/lint/type checking, web, DB access, migrations, IDs, configuration, tests, and jobs;
+- ADRs for runtime, dependency tooling, formatting/lint/type checking, web, database strategy/access, migrations, IDs, configuration, tests, and jobs;
 - modular package skeleton;
 - safe configuration schema, environment overlays, and secret references;
 - placeholder-only `.env.example`;
-- local PostgreSQL workflow;
+- Gate A-approved local-development and early/MVP persistence workflow;
+- documented production relational target and migration path, with PostgreSQL/PostGIS remaining the likely option unless Gate A decides otherwise;
 - initial migrations for configuration versions, sources, listing/property anchors, runs, jobs, and migration metadata;
 - developer commands/CI and structured correlation logging.
 
 **Tests:**
 
 - configuration validation and invalid thresholds/intervals/missing references;
-- PostgreSQL migration from empty and upgrade smoke test;
-- constraints/transactions;
+- selected-store migration from empty and upgrade smoke test;
+- compatibility tests that expose differences in concurrency, types, constraints, transactions, and geospatial behavior relevant to the likely production target;
+- if SQLite is used for a bounded purpose, target-compatible tests proving business/persistence logic does not depend on SQLite behavior;
 - secret scan/redaction;
 - module-boundary checks where supported.
 
@@ -55,7 +57,8 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 
 - documented contributor setup;
 - deterministic tests/lint/types;
-- PostgreSQL migrates from empty and reports version;
+- the selected local/MVP store migrates from empty and reports version;
+- the database ADR records local, early/MVP, production-target, and migration-path decisions plus required target-database test coverage;
 - no production service/secret needed;
 - Gate A ADRs resolved or explicitly deferred.
 
@@ -110,6 +113,7 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 - conservative rates, timeouts, jitter, retry/cooldown, pause control;
 - approved discovery/detail/manual/API/feed path;
 - source identity and status interpretation;
+- original headline, catch copy, and selling-point facts with observation provenance;
 - permitted representative fixtures;
 - parser required-field health metrics;
 - alternate/manual behavior when automation is unavailable.
@@ -118,6 +122,7 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 
 - typical, missing, malformed, ended, markup-changed, and encoding fixtures;
 - ID/URL/relisting cases;
+- headline/catch-copy history and marketing-claim source attribution;
 - status without treating failed fetch as disappearance;
 - rate/cooldown/retry classification;
 - drift/required-field signal;
@@ -135,4 +140,3 @@ Read with [Roadmap](../roadmap.md). Every phase preserves the cross-phase rules 
 **Dependencies:** Phase 2 and Gate B.
 
 **Intentionally deferred:** additional sources, auto cross-source matching, canonical merge, high-frequency polling, any protection bypass.
-

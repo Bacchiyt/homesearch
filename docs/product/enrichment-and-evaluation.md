@@ -7,6 +7,7 @@ Read with [Product specification](../product-spec.md), [Enrichment architecture]
 - Portal data is input evidence, not automatically verified truth.
 - Provider/dataset, version, checked time, input evidence, precision/confidence, and retention/display constraints accompany results.
 - Provider failure or missing coverage yields `UNKNOWN`, not a negative conclusion.
+- High-priority enrichment reports explicit completed, unknown/not-verified, failed, or timed-out outcomes so a versioned notification-readiness policy can make a bounded decision.
 - Stable results are cached and refreshed on staleness, dataset change, or material input change—not every poll.
 - External providers remain replaceable and require terms, quality, quota, privacy, and cost review.
 
@@ -129,4 +130,3 @@ A property may retain multiple rejection reasons. Rejected properties remain for
 - Hazard confidence is bounded by both dataset and location precision.
 - Natural-light/layout inference from listing material is technically difficult, copyright-sensitive, and often under-evidenced.
 - Low cost may constrain map/routing/image providers; cached or manual evidence may be necessary.
-

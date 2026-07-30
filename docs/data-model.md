@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This is the conceptual persistence model, not final SQL. Physical types, indexes, enum representation, IDs, PostGIS, ORM mapping, partitioning, and bitemporal depth require Phase 1 ADR/schema decisions after approval.
+This is the conceptual persistence model, not final SQL. Gate A must first choose local-development, early/MVP, and production persistence plus a migration path. Physical types, indexes, enum representation, IDs, PostGIS, ORM mapping, partitioning, and bitemporal depth remain later ADR/schema decisions.
 
 The model must:
 
@@ -14,7 +14,7 @@ The model must:
 - distinguish unknown, negative, conflicting, and verified facts;
 - version derived results;
 - deduplicate jobs, events, and notifications; and
-- remain portable across PostgreSQL providers.
+- remain PostgreSQL-compatible/migration-ready without depending on SQLite-specific behavior.
 
 ## Modeling conventions
 
@@ -60,6 +60,7 @@ erDiagram
     SOURCE ||--o{ LISTING : publishes
     LISTING ||--o{ OBSERVATION : observed_as
     OBSERVATION ||--o{ SOURCE_FACT : yields
+    LISTING ||--o{ MARKETING_CLAIM : makes
     PROPERTY ||--o{ PROPERTY_LISTING_LINK : has
     LISTING ||--o{ PROPERTY_LISTING_LINK : resolves_to
     PROPERTY ||--o{ IDENTITY_EVIDENCE : supported_by
@@ -68,12 +69,17 @@ erDiagram
     OBSERVATION ||--o{ PROPERTY_FIELD_VALUE : supports
     PROPERTY ||--o{ CANONICAL_FIELD_SELECTION : selects
     PROPERTY_FIELD_VALUE ||--o{ CANONICAL_SELECTION_CANDIDATE : considered
+    PROPERTY ||--o{ PROPERTY_MARKETING_CLAIM_AGGREGATE : summarizes
     PROPERTY ||--o{ ENRICHMENT_RESULT : enriched_by
     PROPERTY ||--o{ PROPERTY_EVALUATION : evaluated_by
     PROPERTY_EVALUATION ||--o{ EVALUATION_EVIDENCE : justified_by
     PROPERTY ||--o{ TRACKING_PREFERENCE : tracked_as
     PROPERTY ||--o{ PROPERTY_EVENT : emits
+    PROPERTY ||--o{ NOTIFICATION_READINESS_ASSESSMENT : assessed_for
+    NOTIFICATION_READINESS_POLICY_VERSION ||--o{ NOTIFICATION_READINESS_ASSESSMENT : governs
+    NOTIFICATION_READINESS_ASSESSMENT ||--o{ NOTIFICATION_READINESS_REQUIREMENT_RESULT : explains
     PROPERTY_EVENT ||--o{ NOTIFICATION : may_trigger
+    NOTIFICATION_READINESS_ASSESSMENT ||--o{ NOTIFICATION : authorizes
     NOTIFICATION ||--o{ NOTIFICATION_DELIVERY : delivered_as
     NOTIFICATION ||--o{ ACTION_TOKEN : offers
     PROPERTY ||--o{ MANUAL_REVIEW_CASE : may_require
@@ -93,5 +99,4 @@ erDiagram
 - A listing normally has at most one active property link, but prior corrected links remain.
 - Current selection periods do not overlap per property/field.
 - Semantic event, notification, delivery, and token uniqueness are enforced where possible.
-- Concurrency and migrations are tested against PostgreSQL.
-
+- Concurrency, types, constraints, transactions, migrations, and geospatial behavior are validated against the Gate A production target or a PostgreSQL-compatibility path; SQLite-only tests cannot hide differences.

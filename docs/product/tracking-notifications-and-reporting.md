@@ -32,9 +32,45 @@ Versioned change policy can emit:
 
 Formatting-only or parser-only differences are not semantic events. Failed/partial source runs do not establish disappearance. Events use deterministic fingerprints and preserve before/after evidence plus detector version.
 
+## Notification readiness
+
+A versioned `NotificationReadinessPolicy` decides when a newly discovered canonical property may produce its first notification. Suggested outcomes are:
+
+- `NOT_READY` — required prerequisites are still pending before the deadline;
+- `READY_COMPLETE` — every requirement in this policy reached a complete result;
+- `READY_WITH_UNKNOWNS` — notification is timely and safe, but one or more allowed requirements are explicitly unknown, not verified, unavailable, or timed out;
+- `BLOCKED_IDENTITY_REVIEW` — canonical identity is not safe enough to notify as one property.
+
+Exact names remain an implementation decision, but the distinct semantics are required.
+
+A normal new-property notification requires:
+
+- sufficiently safe identity resolution and a canonical `Property`;
+- basic facts such as price/property type and useful descriptive facts when available;
+- retained source links and field-level provenance;
+- the best currently obtainable address/location precision, explicitly labeled;
+- configured high-priority enrichment in a policy-accepted terminal state: completed, explicitly `UNKNOWN`/`NOT_VERIFIED`, or timed out;
+- evaluation based on the available evidence; and
+- major conflicts surfaced rather than hidden.
+
+The policy defines:
+
+- applicable notification/event type;
+- identity threshold and conflicts that block;
+- minimum basic facts;
+- high-priority versus optional enrichment;
+- accepted terminal states for each requirement;
+- maximum time from the triggering discovery/event to readiness;
+- whether a timed-out/failed requirement permits `READY_WITH_UNKNOWNS`; and
+- policy version/effective period.
+
+Readiness is re-evaluated as complementary listings, canonical facts, enrichment, or the deadline changes. Optional map, amenity, routing, or other provider failure must not keep a property in `NOT_READY` forever. At the maximum deadline, policy either permits a timely notification with explicit 「未確認」 items or records a specific blocking reason. Identity ambiguity is not converted into readiness merely because the deadline elapsed.
+
+Every assessment is auditable: property/event, policy version, deadline, input projection/evaluation, per-requirement outcome, provider failure/timeout, conflicts, readiness outcome, evaluated time, and supersession. Later material enrichment can produce a separate update event under notification policy.
+
 ## Japanese notifications
 
-When a property is sufficiently processed and policy permits, the notification contains:
+When a property reaches a ready state and notification policy permits, the notification contains:
 
 - summary, price, and location precision;
 - property specifications and source links;
@@ -47,7 +83,14 @@ When a property is sufficiently processed and policy permits, the notification c
 
 It offers 「追跡する」 and 「今は追跡しない」.
 
-Notification history retains property/events, destination reference, type/channel, locale, policy/template/payload versions, historical content snapshot, provider references, attempts, delivery status, and timestamps.
+Every important item must be labeled or grouped as:
+
+- verified;
+- source claim only;
+- conflicting; or
+- unknown/not yet checked, including timeout/unavailable reason when known.
+
+Notification history retains the readiness assessment, property/events, destination reference, type/channel, locale, policy/template/payload versions, historical content snapshot, provider references, attempts, delivery status, and timestamps.
 
 ## Secure action behavior
 
@@ -122,4 +165,3 @@ Run history and health views must answer:
 - backup age/restore status when deployed.
 
 A lack of email is never the only health indicator.
-

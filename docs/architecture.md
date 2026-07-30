@@ -2,11 +2,13 @@
 
 ## Target shape
 
-Homesearch is a low-cost, auditable **modular monolith with separately runnable web, scheduler, and worker entry points**, one PostgreSQL database, and optional provider-neutral object storage.
+Homesearch is a low-cost, auditable **modular monolith with separately runnable web, scheduler, and worker entry points**, a relational persistence strategy selected at Gate A, and optional provider-neutral object storage.
 
 Modules share one versioned codebase but communicate through explicit application interfaces and durable jobs/events. This avoids premature distributed-system complexity while leaving clean seams for measured future extraction.
 
 This is a target architecture, not approval to begin Phase 1.
+
+PostgreSQL is the likely long-term production target, especially if PostGIS provides material geospatial value. Phase 0 does not decide the local-development store, early/MVP persistence, production relational target, or migration path.
 
 ## Adopted directions
 
@@ -20,16 +22,18 @@ This is a target architecture, not approval to begin Phase 1.
 - Preserve explicit unknown/conflict/verification states.
 - Run discovery and tracking as distinct workflows sharing ingestion.
 - Cache stable enrichment by input fingerprint and refresh policy.
+- Bound new-property enrichment with a versioned, deadline-aware notification-readiness policy.
 
 ## Provisional choices
 
 These require ADR approval before implementation:
 
 - Python is the leading runtime candidate for parsing/data/geospatial work.
-- PostgreSQL is the relational target in local and production-like environments.
+- Gate A selects local, early/MVP, and production persistence plus their migration path; all domain/schema design remains PostgreSQL-compatible/migration-ready.
+- SQLite may support isolated tests, tools, prototypes, exports, or temporary local work, but not permanent production or the sole validation of database semantics.
 - A small typed HTTP application can serve confirmations and health.
-- PostgreSQL-backed durable jobs are the initial low-cost candidate; add a broker only after measurement.
-- Optional large permitted payloads use checksum-addressed, replaceable blob storage referenced from PostgreSQL.
+- Database-backed durable jobs are a low-cost candidate whose validity depends on the Gate A database decision; add a broker only after measurement.
+- Optional large permitted payloads use checksum-addressed, replaceable blob storage referenced from the selected relational store.
 
 See [Quality constraints and open decisions](product/quality-and-decisions.md) and [Roadmap](roadmap.md).
 
@@ -49,7 +53,7 @@ flowchart LR
         Scheduler["Scheduler"]
         Workers["Workers"]
         Domain["Domain modules"]
-        DB[("PostgreSQL")]
+        DB[("Relational persistence<br/>Gate A decision")]
         Blob[("Optional portable<br/>raw-object storage")]
         Ops["Health, logs, metrics,<br/>run ledger"]
     end
@@ -97,7 +101,7 @@ homesearch/
 - **Discovery/ingestion/parsing:** approved collection orchestration, immutable capture, and source facts.
 - **Canonicalization:** normalization, identity coordination, candidate creation, merge, and projection.
 - **Enrichment:** provider calls, cache/staleness, evidence, and versioning.
-- **Notification:** immutable payloads, delivery attempts, and secure actions.
+- **Notification:** versioned readiness/deadline decisions, immutable payloads, delivery attempts, and secure actions.
 - **Review/reporting:** audited correction and reproducible output.
 - **Adapters:** translation to sources, persistence, storage, enrichment, email, clocks, and IDs.
 
@@ -108,4 +112,3 @@ Domain modules do not fetch pages, call vendors, or depend on ORM models. Source
 - [Pipeline and interfaces](architecture/pipeline-and-interfaces.md) — adapter contracts, discovery/tracking/reprocessing flows, observations, and canonical projections.
 - [Jobs and operations](architecture/jobs-and-operations.md) — durable scheduling, idempotency, failure handling, observability, configuration, and testing.
 - [Deployment and providers](architecture/deployment-and-providers.md) — action endpoint, topology, portability, backup/recovery, provider strategy, scaling, and risks.
-

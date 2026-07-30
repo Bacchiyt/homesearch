@@ -64,15 +64,49 @@ The catalog is extensible but should not become an untyped catch-all for core qu
 
 ## Claims and verified features
 
-Extract source selling points such as 南道路, 角地, 駅徒歩○分, LDK20帖, 吹抜け, パントリー, SIC, 駐車2台, 長期優良住宅, ZEH, 制震, and 耐震等級3 with observation provenance.
+For every listing, preserve:
+
+- original headline/title;
+- catch copy and selling-point text;
+- normalized marketing keywords/features;
+- source/listing/observation attribution; and
+- first and last observed times.
+
+Candidate selling points include 南道路, 角地, 駅徒歩○分, LDK20帖, 吹抜け, パントリー, SIC, 駐車2台, 長期優良住宅, ZEH, 制震, and 耐震等級3.
+
+Normalization uses a versioned concept/alias vocabulary while retaining the exact original wording. For example, `SIC` and `シューズインクローク` may map to one normalized claim concept, as may `パントリー` and `食品庫`. Alias normalization does not verify the claim.
+
+The canonical property needs a rebuildable, historical marketing-claim aggregation that can answer:
+
+- normalized claim/concept and observed raw variants;
+- how many distinct current/relevant listings mention it;
+- the denominator and versioned definition of “current/relevant listing”;
+- supporting listings and sources;
+- first/last seen; and
+- calculation time, input fingerprint, and aggregation/alias versions.
+
+Example output:
+
+```text
+吹抜け — 4 of 6 current/relevant listings
+sources: SUUMO, broker A, broker B, developer
+first seen: ...
+last seen: ...
+
+パントリー — 3 of 6 current/relevant listings
+```
+
+Count distinct listings rather than repeated observations. Historical views may include inactive listings, but must label the denominator policy.
 
 Distinguish:
 
 - `MARKETING_CLAIM`;
-- `NORMALIZED_FEATURE`; and
-- `VERIFIED_FEATURE`.
+- normalized marketing claim/feature concept; and
+- `VERIFIED_FEATURE` or another verified canonical fact.
 
-Repeated broker claims can be informative but do not constitute independent verification.
+Repeated broker/source emphasis is useful for summary, discovery of synonymous descriptions, and changes in marketing emphasis over time. Repetition—even across every listing—does not automatically create a `VERIFIED_FEATURE`.
+
+Detailed NLP, synonym discovery, and extraction implementation are deferred. Phase 0 defines the domain outputs and audit requirements only.
 
 ## Knowledge states
 
@@ -97,4 +131,3 @@ The system must answer, within approved retention limits:
 - What evidence, canonical values, evaluation, and template supported a notification?
 
 Corrections and new algorithms are additive/superseding. Current projections are rebuildable caches, never the only record.
-

@@ -26,7 +26,7 @@ Homesearch is a long-lived personal system for discovering, normalizing, enrichi
 
 - Preserve module boundaries defined in `docs/architecture.md`; keep sources and external providers behind typed adapters.
 - Prefer the documented modular monolith and simple, portable, low-cost infrastructure until measured needs justify change.
-- Use PostgreSQL-compatible schema and migrations. Do not use SQLite where it hides production behavior.
+- Keep persistence PostgreSQL-compatible/migration-ready; Gate A chooses local, MVP, and production database strategies. SQLite is acceptable only where target-database differences are not hidden.
 - Jobs and effects are idempotent, timeout-bounded, retry-safe, rate-limited, jittered, observable, and protected from overlap.
 - Search areas, sources, price/property filters, schedules, destinations, evaluation thresholds, recipients, and feature flags are configuration—not business logic.
 - Cache stable enrichment by evidence/version and refresh policy.
@@ -47,4 +47,3 @@ Homesearch is a long-lived personal system for discovering, normalizing, enrichi
 - Tests distinguish unknown, absent, verified negative, conflicting, and verified values; use deterministic clocks/IDs for historical behavior.
 - Keep run history sufficient to prove discovery, tracking, parsing, enrichment, and notification health.
 - Update architecture, data-model, operations, configuration, and roadmap documentation in the same change when applicable.
-

@@ -68,13 +68,23 @@ Examples: price, address, station text, 建築確認番号, project name, public
 
 **Purpose:** queryable source selling point without treating it as verified.
 
-**Important fields:** listing, observation/source fact, raw phrase, normalized claim kind/value, extraction method/version, and status/link to later normalized or verified evidence.
+**Important fields:** listing, source, observation/source fact, raw phrase, text role (`HEADLINE`, `CATCH_COPY`, `SELLING_POINT`, `DESCRIPTION`), normalized concept/value, observed time, extraction/normalization/alias versions, confidence, and status/link to later normalized or verified evidence.
+
+Original listing headline/title and catch/selling-point text are retained as observation-backed `SourceFact` values. Repeated identical text across observations remains historically reconstructible rather than creating false independent claims.
+
+## `ListingMarketingTextProjection`
+
+**Purpose:** rebuildable per-listing view of original marketing text and normalized claims over time.
+
+**Important fields:** listing/source, text role, exact text/value hash, first/last observed times, current/relevant state, supporting observations, normalized concept links, and projection version.
+
+This projection supports property-level aggregation while keeping original wording and source attribution. It is not canonical property truth.
 
 ## Ingestion relationships and constraints
 
 - Source configuration/search versions link to `PollingRun`/`SourceRun`.
 - Listing identity rules are source-specific and versioned.
 - One logical parse result exists per observation/parser version/input checksum.
+- Marketing claims preserve exact text/source/observation and cannot be promoted to verified facts by repetition.
 - Facts cannot outlive their observation provenance.
 - Raw-object expiry cannot cascade into facts, properties, events, or notifications.
-
