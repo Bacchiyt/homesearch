@@ -1,4 +1,4 @@
-schema_version = 2
+schema_version = 3
 config_id = "homesearch-default"
 config_version = 1
 effective_from = 2026-07-30T00:00:00Z
@@ -8,6 +8,9 @@ default_user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
 
 [[user_scope.users]]
 user_id = "019fb31c-0022-70cf-afee-7644241d7ba8"
+
+[source_registry]
+sources = []
 
 [runtime]
 log_level = "INFO"

@@ -4,9 +4,9 @@ Homesearch is a personal system for discovering, normalizing, enriching, evaluat
 
 ## Current implementation scope
 
-Phase 1 currently provides the Python project/toolchain bootstrap and the versioned configuration foundation. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults also define one explicit non-secret UUIDv7 user and reference it as the early command-workflow default.
+Phase 1 currently provides the Python project/toolchain bootstrap and the versioned configuration foundation. Safe TOML configuration is validated before use, layered through explicit profile/local selection, and identified by a deterministic digest that excludes resolved secret values. The tracked defaults define one explicit non-secret UUIDv7 user and an empty source registry; no source is configured or authorized for access.
 
-Source/search policy sections, PostgreSQL access, migrations, Docker Compose, CI, authentication, destinations, source adapters, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
+Search-area/filter/schedule configuration, PostgreSQL access, migrations, Docker Compose, CI, authentication, destinations, source adapters, external providers, real credentials, and deployment remain intentionally deferred to later independently reviewed tasks.
 
 ## Local setup
 
@@ -34,7 +34,9 @@ Configuration precedence is:
 
 Calling `load_configuration()` with no argument reads that allowlist from the process environment and optional `.env`. Passing an `OperationalSettings` object instead treats it as the complete explicit input and does not consult ambient environment or dotenv values.
 
-`user_scope` is version-controlled, contains no personal profile or destination data, and currently permits exactly one user. Its explicit `default_user_id` prevents later persistence and command code from relying on a hidden process-wide singleton. This required field advances the configuration schema to version 2; version-1 files are rejected until explicitly updated rather than silently migrated.
+`user_scope` is version-controlled, contains no personal profile or destination data, and currently permits exactly one user. Its explicit `default_user_id` prevents later persistence and command code from relying on a hidden process-wide singleton.
+
+Configuration schema version 3 adds the versioned `source_registry` boundary. Each source has an opaque UUIDv7 identity plus a stable readable key; its policy can record lifecycle, access-assessment status, neutral capabilities, bounded request settings, and capture/retention/storage behavior. Only a versioned profile can replace the registry; ignored local TOML and environment values cannot mutate it. An enabled source must reference an approved assessment and satisfy the policy constraints, but configuration never grants Gate B approval or executes an adapter. Earlier schema versions are rejected until explicitly updated rather than silently migrated.
 
 Run the local quality checks:
 
