@@ -6,9 +6,27 @@ Homesearch is a long-lived personal system for discovering, normalizing, enrichi
 
 1. Start at `docs/README.md`; read the core overview and only the task-specific documents it routes to.
 2. Inspect the current implementation, migrations, tests, configuration, and decisions before changing structure.
-3. Work only within the smallest approved roadmap phase. Phase 1 is not approved until the user explicitly passes Gate A.
+3. Work only within the smallest approved roadmap phase. Gate A has passed and Phase 1 is authorized; later phases and gates still require their documented prerequisites.
 4. Record uncertainty instead of inventing behavior, source permissions, provider capabilities, pricing, or data certainty.
 5. Update the relevant docs and ADRs when a durable boundary or decision changes.
+
+## Repository and GitHub workflow
+
+For work intended for publication:
+
+1. Work on the designated feature/task branch.
+2. Implement and validate locally.
+3. Commit only the scoped changes.
+4. Request network-enabled execution when GitHub access is required.
+5. Push the branch.
+6. Create or update its pull request.
+7. Read and address pull-request conversation and review comments.
+8. Do not merge without explicit user instruction.
+
+- The default Codex sandbox can block GitHub network/DNS access, causing `gh`, SSH, `git push`, and similar operations to report authentication-looking, connectivity, or hostname errors. First retry the necessary check or operation with approved network access; do not immediately request re-authentication.
+- Treat a successful `gh auth status` outside the sandbox as valid authentication. Do not log out, replace tokens, recreate SSH keys, or otherwise modify credentials unless authentication also fails outside the sandbox.
+- Before changing an existing pull request, inspect its conversation, reviews, and unresolved threads with network-enabled `gh` access when needed. Treat unresolved actionable feedback as work: implement and validate the fix, summarize what was addressed, and push to the same PR branch unless explicitly instructed otherwise.
+- Do not create a new pull request solely for review fixes, and never merge one without explicit user instruction.
 
 ## Domain invariants
 

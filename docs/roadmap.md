@@ -21,7 +21,7 @@ Cross-phase rules:
 
 ### Gate A — foundation
 
-Before Phase 1:
+Gate A required the product owner to:
 
 - approve/revise the Phase 0 documents and modular-monolith direction;
 - review and explicitly accept, revise, reject, or defer each proposal in the [Gate A ADR set](adr/README.md);
@@ -30,7 +30,7 @@ Before Phase 1:
 - decide database access/migrations, identifiers/time, jobs/scheduler phase boundary, initial user scope, web deferral, raw-storage boundary, and cost posture; and
 - record any unresolved item with an explicit owner, validation step, and implementation-blocking effect.
 
-**Current state: ADRs 0001–0011 are Proposed; none is Accepted and Gate A is not approved.**
+**Status: Passed on 2026-07-30.** The product owner explicitly accepted ADRs 0001–0011 after review of the recommendations merged in PR #2. Phase 0 is approved and Phase 1 is authorized to begin. Gate A does not authorize later phases, live source access, outbound providers, credentials, infrastructure, or deployment.
 
 ### Gate B — source access
 
@@ -97,9 +97,9 @@ Before production:
 | Run/report auditability | 6 | every workflow |
 | Backup/restore | prepare before production | every production migration |
 
-## ADR status and later backlog
+## Accepted Gate A decisions and later backlog
 
-The [Gate A proposal set](adr/README.md) covers runtime/tooling, database strategy/access, configuration, jobs, web, user scope, raw storage, local development, CI, and cost. These ADRs are documentation proposals only and need explicit owner approval before Phase 1.
+The [accepted Gate A decision set](adr/README.md) covers runtime/tooling, database strategy/access, configuration, jobs, web, user scope, raw storage, local development, CI, and cost. ADRs 0001–0011 are `Accepted` and are the implementation baseline for Phase 1.
 
 Create later ADRs only when their gate/phase needs them:
 
@@ -111,6 +111,6 @@ Create later ADRs only when their gate/phase needs them:
 6. Hosting/provider selection, backup/recovery, monitoring, and production retention.
 7. Authentication/authorization before public access or a second user.
 
-## Immediate stop
+## Current authorization
 
-Phase 0 documents and Proposed Gate A ADRs await user approval. Do **not** begin Phase 1 until the product owner explicitly approves Gate A; proposal, review, branch merge, or silence is not approval.
+Phase 1 is authorized to begin because Gate A passed through explicit product-owner approval. This documentation-only acceptance change does not start Phase 1 implementation. Phase 2 and later work remain subject to phase dependencies, and Gates B–D still block live source access, outbound providers, production resources, credentials, and deployment.

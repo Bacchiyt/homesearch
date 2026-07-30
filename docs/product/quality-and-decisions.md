@@ -25,8 +25,8 @@ Read with [Product specification](../product-spec.md), [Architecture](../archite
 
 ## Portability and recoverability
 
-- Gate A must decide the local-development database, early/MVP persistence, production relational target, and migration path as one explicit database strategy.
-- [ADR 0002](../adr/0002-database-strategy.md) recommends PostgreSQL 18 from local development onward, with PostGIS deferred, but its status is `Proposed` and Gate A has not selected it.
+- Gate A accepted the local-development database, early/MVP persistence, production relational target, and migration path as one explicit database strategy.
+- [ADR 0002](../adr/0002-database-strategy.md) selects PostgreSQL 18 from local development onward, with PostGIS deferred.
 - SQLite is not the permanent production design. It may be useful for isolated tests, local tooling, prototypes, exports, or temporary development workflows.
 - Persistence/business logic must not depend on SQLite-specific behavior. SQLite-only tests must not hide differences in concurrency, types, constraints, transactions, migrations, or geospatial behavior.
 - Domain/schema design remains PostgreSQL-compatible and migration-ready regardless of the early/local choice.
@@ -72,11 +72,11 @@ Read with [Product specification](../product-spec.md), [Architecture](../archite
 - multi-user behavior; and
 - provider resources, credentials, GitHub secrets, or paid services.
 
-## Gate A proposals
+## Gate A accepted decisions
 
-The detailed context, alternatives, consequences, and validation live in focused ADRs rather than this product constraint file. Every row remains open until explicit product-owner approval.
+The detailed context, alternatives, consequences, and validation live in focused ADRs rather than this product constraint file. The product owner accepted every row on 2026-07-30.
 
-| Decision | Proposed recommendation | ADR |
+| Decision | Accepted direction | ADR |
 |---|---|---|
 | Runtime/toolchain | Python 3.14, uv, Ruff, mypy, pytest, HTTPX, lxml, Pydantic Settings, structured standard logging; synchronous first | [0001](../adr/0001-python-runtime-and-toolchain.md) |
 | Database strategy | PostgreSQL 18 for local, MVP, and production; SQLite only for bounded disposable uses; PostGIS later if justified | [0002](../adr/0002-database-strategy.md) |
@@ -90,13 +90,13 @@ The detailed context, alternatives, consequences, and validation live in focused
 | CI | GitHub Actions with locked dependencies, Ruff, mypy, pytest, PostgreSQL migrations/integration, and secret scanning | [0010](../adr/0010-continuous-integration.md) |
 | Cost posture | Local-first, one production relational service, defer and budget variable-cost providers | [0011](../adr/0011-cost-model.md) |
 
-Approval must address each proposal. An accepted database decision must name local development, early/MVP persistence, production target, migration/restore path, and mandatory target-database testing. Approval of a database engine does not approve a host, production resource, or PostGIS.
+Gate A acceptance covers local development, early/MVP persistence, the production target, migration/restore path, and mandatory target-database testing. Acceptance of the database engine does not approve a host, production resource, or PostGIS.
 
 ## Later research and decisions
 
 | Decision | Current direction | What must be resolved |
 |---|---|---|
-| PostgreSQL host | Decide only after the engine strategy is accepted and Gate D approaches | Region, supported major/minor, cost, backup, extensions, egress, sleep behavior |
+| PostgreSQL host | Decide only as Gate D approaches | Region, supported major/minor, cost, backup, extensions, egress, sleep behavior |
 | PostGIS | Isolated optional capability, not a Gate A dependency | Measured spatial need, host support, migrations, indexes, export/non-spatial fallback |
 | Geocoder | Adapter/cache, official/open preference | Japanese quality, terms, quota, cost, precision, redistribution |
 | Amenity provider | Bounded cached adapter | Coverage, categories, current business hours, terms, quota |

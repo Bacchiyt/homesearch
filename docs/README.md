@@ -4,9 +4,9 @@ This index is the required starting point for project work. Read the core overvi
 
 ## Current status
 
-- Phase 0 design documents and the [Gate A ADR proposals](adr/README.md) have been drafted.
-- Every Gate A ADR is `Proposed`; none is accepted and Gate A has not been approved.
-- Do **not** start Phase 1, live source access, external API setup, email delivery, infrastructure creation, or deployment.
+- Phase 0 design is complete and Gate A passed on 2026-07-30 after explicit product-owner approval.
+- [Gate A ADRs 0001–0011](adr/README.md) are `Accepted`, and Phase 1 is authorized to begin within its documented scope.
+- This acceptance update is documentation-only. Live source access, external API setup, email delivery, infrastructure creation, credentials, and deployment remain unauthorized by Gate A.
 
 ## Core overview
 
@@ -28,7 +28,7 @@ Read these short entry points for any major task:
 | Notification readiness, deadlines, events, delivery, secure actions, tracking, reporting, or manual review | [Tracking and reporting requirements](product/tracking-notifications-and-reporting.md), [Pipeline and interfaces](architecture/pipeline-and-interfaces.md), [Jobs and operations](architecture/jobs-and-operations.md), [Tracking and operations model](data-model/tracking-and-operations.md), [Roadmap: domain and tracking](roadmap/domain-and-tracking.md) |
 | Scheduler, jobs, observability, failure handling, testing, backup, deployment, portability, or cost | [Quality and open decisions](product/quality-and-decisions.md), [Jobs and operations](architecture/jobs-and-operations.md), [Provider and deployment architecture](architecture/deployment-and-providers.md), [Roadmap](roadmap.md), [Roadmap: enrichment and operations](roadmap/enrichment-and-operations.md) |
 | Database strategy, schema, persistence, or migrations | [Database strategy ADR](adr/0002-database-strategy.md), [Database access ADR](adr/0003-database-access-and-migrations.md), [Data model](data-model.md), and [Roadmap: foundation and ingestion](roadmap/foundation-and-ingestion.md) |
-| Gate A runtime, configuration, local workflow, CI, user scope, web, storage, jobs, or cost review | [ADR index](adr/README.md), then only the ADRs it routes to |
+| Gate A runtime, configuration, local workflow, CI, user scope, web, storage, jobs, or cost implementation | [ADR index](adr/README.md), then only the ADRs it routes to |
 | Later durable technology/provider decision | [Quality and open decisions](product/quality-and-decisions.md), [Provider and deployment architecture](architecture/deployment-and-providers.md), and the later backlog in [Roadmap](roadmap.md) |
 
 ## Document tree

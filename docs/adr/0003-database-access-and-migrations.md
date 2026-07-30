@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -10,7 +10,7 @@ The domain must remain independent of persistence details while still using Post
 
 ## Decision
 
-If ADR 0002's PostgreSQL recommendation is approved:
+With ADR 0002's PostgreSQL decision accepted:
 
 - use [SQLAlchemy 2.x](https://docs.sqlalchemy.org/en/20/)'s synchronous Core/ORM APIs with psycopg 3;
 - use [Alembic](https://alembic.sqlalchemy.org/en/latest/) for ordered, reviewed schema migrations;
@@ -39,7 +39,7 @@ Migrations are forward-oriented. Every migration supplies a forward-repair plan;
 - **Direct psycopg SQL:** maximum control, but more repetitive mapping/migration integration for the breadth of the conceptual model.
 - **SQLModel:** convenient Pydantic/ORM combination, but it risks coupling API validation, persistence models, and domain entities.
 - **Django ORM:** mature but brings a larger application framework and active-record conventions before a web application is needed.
-- **Async SQLAlchemy/psycopg:** useful under demonstrated concurrent I/O, but adds session/task safety and testing complexity inconsistent with ADR 0001's sync-first proposal.
+- **Async SQLAlchemy/psycopg:** useful under demonstrated concurrent I/O, but adds session/task safety and testing complexity inconsistent with ADR 0001's sync-first decision.
 - **ULID:** sortable and compact in text, but UUIDv7 is standardized, supported by Python 3.14, and maps directly to PostgreSQL `uuid`.
 - **UUIDv4:** simple and ubiquitous, but loses time ordering/locality for new records.
 - **Database-generated IDs as the universal default:** PostgreSQL 18 provides native UUIDv7 capability, but universal database ownership makes offline construction, deterministic tests, and cross-boundary event identity harder. A bounded database-owned path remains available when its ownership is explicit and consistently tested.
@@ -64,7 +64,7 @@ Migrations are forward-oriented. Every migration supplies a forward-repair plan;
 
 ## Follow-up/validation
 
-- Gate A approves SQLAlchemy, sync access, Alembic, UUIDv7, and time semantics together.
+- Gate A accepted SQLAlchemy, sync access, Alembic, UUIDv7, and time semantics together.
 - Phase 1 tests transaction rollback, unique/check/foreign-key constraints, Python-generated UUIDv7 and UTC round trips, migration from empty, upgrade, and forward repair.
 - Schema and repository tests assert one explicit UUIDv7 owner for each entity/write path, including bulk/import behavior; any PostgreSQL-native generation path must be deliberate and cannot silently coexist with application defaults.
 - Define enum/check-table and JSON-versus-relational choices in schema review before their first migration.

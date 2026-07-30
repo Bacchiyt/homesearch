@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -10,7 +10,7 @@ Search areas, source policies, schedules, evaluation thresholds, recipients, and
 
 ## Decision
 
-If Gate A approves this ADR:
+Gate A accepts the following decision:
 
 - use TOML for version-controlled, non-secret configuration and profiles;
 - parse TOML with Python's [`tomllib`](https://docs.python.org/3.14/library/tomllib.html) and validate the resulting data with Pydantic models;
@@ -57,7 +57,7 @@ TOML documents non-secret identity and policy. A recipient is represented by des
 
 ## Follow-up/validation
 
-- Gate A approves TOML, validation, precedence, and the environment allowlist principle.
+- Gate A accepted TOML, validation, precedence, and the environment allowlist principle.
 - Phase 1 defines the first schema and tests valid/invalid configurations, unknown fields, override precedence, digest stability, missing secrets, and redaction.
 - Before runtime editing, decide authorization, audit history, and reconciliation with version-controlled policy.
 - Before production, select a secret provider and recovery procedure under Gate D.

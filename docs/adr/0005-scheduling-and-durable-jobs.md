@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -12,7 +12,7 @@ Phase 1 has no approved live source or outbound effect and therefore does not ne
 
 ## Decision
 
-Adopt a staged design if Gate A approves:
+Gate A accepts this staged design:
 
 ### Phase 1
 
@@ -62,7 +62,7 @@ Add Redis plus Celery/RQ, or another broker, only after measurements show Postgr
 
 ## Follow-up/validation
 
-- Gate A approves the phase split and the PostgreSQL-backed direction without authorizing implementation.
+- Gate A accepted the phase split and the PostgreSQL-backed Phase 6 direction without authorizing early scheduler implementation.
 - Phase 1 tests command idempotency and run correlation only.
 - Before Phase 6, prototype concurrent claims, lease recovery, fairness, cooldown, missed schedules, and dead-job replay on the production PostgreSQL major.
 - Revisit a broker only with measured workload and hosting/cost evidence.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -12,7 +12,7 @@ Homesearch needs strong Japanese text/HTML processing, typed domain boundaries, 
 
 ## Decision
 
-If Gate A approves this ADR:
+Gate A accepts the following decision:
 
 - use the latest supported CPython 3.14.x patch release available when Phase 1 begins, manage the selected patch through uv, and declare the approved 3.14 series in `requires-python`;
 - use a single `pyproject.toml`, committed `uv.lock`, and [uv projects](https://docs.astral.sh/uv/guides/projects/) for Python installation, dependency locking, environments, and command execution;
@@ -60,7 +60,7 @@ Python 3.14 is the architecture-level runtime baseline; an early 3.14 patch is n
 
 ## Follow-up/validation
 
-- At Gate A, approve the runtime and sync-first boundary.
+- Gate A accepted the runtime and sync-first boundary.
 - In Phase 1, select the latest supported Python 3.14.x patch, record the managed local/CI pin, and resolve a compatible dependency set.
 - Prove `uv sync --locked`, Ruff, mypy, and pytest on macOS and CI.
 - Require every later 3.14.x patch upgrade to pass the same CI gates before updating local or deployment pins.

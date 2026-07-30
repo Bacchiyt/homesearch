@@ -6,9 +6,9 @@ Homesearch is a low-cost, auditable **modular monolith with separately runnable 
 
 Modules share one versioned codebase but communicate through explicit application interfaces and durable jobs/events. This avoids premature distributed-system complexity while leaving clean seams for measured future extraction.
 
-This is a target architecture, not approval to begin Phase 1.
+Gate A accepts this target architecture, and Phase 1 may implement it within the roadmap scope.
 
-PostgreSQL is the likely long-term production target, especially if PostGIS provides material geospatial value. Phase 0 does not decide the local-development store, early/MVP persistence, production relational target, or migration path.
+Phase 0 left the database decision open. Gate A subsequently accepted PostgreSQL 18 for local development, early/MVP persistence, and the production relational target, with a tested migration/restore path. PostGIS remains a later optional decision if it provides material geospatial value.
 
 ## Adopted directions
 
@@ -24,15 +24,15 @@ PostgreSQL is the likely long-term production target, especially if PostGIS prov
 - Cache stable enrichment by input fingerprint and refresh policy.
 - Bound new-property enrichment with a versioned, deadline-aware notification-readiness policy.
 
-## Gate A proposals
+## Accepted Gate A directions
 
-The [Gate A ADR set](adr/README.md) recommends the following. Every item remains `Proposed`; none authorizes implementation:
+The [Gate A ADR set](adr/README.md) accepts the following Phase 1 implementation directions:
 
-- [ADR 0001](adr/0001-python-runtime-and-toolchain.md) proposes Python 3.14 with a synchronous application and adapter baseline.
-- [ADRs 0002–0003](adr/0002-database-strategy.md) propose PostgreSQL 18 throughout, SQLAlchemy 2/psycopg 3, Alembic, UUIDv7, and UTC-aware system instants.
-- [ADR 0005](adr/0005-scheduling-and-durable-jobs.md) proposes no Phase 1 scheduler/job engine and PostgreSQL-backed durable jobs only from Phase 6.
-- [ADR 0006](adr/0006-web-and-api.md) proposes no early server and FastAPI only when an approved HTTP surface is needed.
-- [ADR 0008](adr/0008-raw-observation-storage.md) proposes relational metadata plus optional checksum-addressed portable blobs from Phase 2.
+- [ADR 0001](adr/0001-python-runtime-and-toolchain.md) selects Python 3.14 with a synchronous application and adapter baseline.
+- [ADRs 0002–0003](adr/0002-database-strategy.md) select PostgreSQL 18 throughout, SQLAlchemy 2/psycopg 3, Alembic, UUIDv7, and UTC-aware system instants.
+- [ADR 0005](adr/0005-scheduling-and-durable-jobs.md) defers the scheduler/job engine in Phase 1 and selects PostgreSQL-backed durable jobs from Phase 6.
+- [ADR 0006](adr/0006-web-and-api.md) defers an early server and designates FastAPI only when an approved HTTP surface is needed.
+- [ADR 0008](adr/0008-raw-observation-storage.md) selects relational metadata plus optional checksum-addressed portable blobs from Phase 2.
 
 See [Quality constraints and open decisions](product/quality-and-decisions.md) and [Roadmap](roadmap.md).
 
@@ -52,7 +52,7 @@ flowchart LR
         Scheduler["Scheduler"]
         Workers["Workers"]
         Domain["Domain modules"]
-        DB[("Relational persistence<br/>Gate A decision")]
+        DB[("PostgreSQL 18.x<br/>accepted Gate A target")]
         Blob[("Optional portable<br/>raw-object storage")]
         Ops["Health, logs, metrics,<br/>run ledger"]
     end
