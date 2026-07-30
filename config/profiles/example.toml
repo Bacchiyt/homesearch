@@ -1,0 +1,12 @@
+schema_version = 1
+config_id = "local-example"
+config_version = 1
+effective_from = 2026-07-30T00:00:00Z
+
+[runtime]
+log_format = "console"
+
+[[secret_references]]
+secret_id = "database-url"
+setting = "database_url"
+required = true
