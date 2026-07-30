@@ -26,6 +26,7 @@ This specification does not authorize live scraping, external API setup, product
 - **Canonical value:** selected normalized property field value with provenance and selection rationale.
 - **Enrichment:** information derived from external datasets or analysis.
 - **Evaluation:** versioned conclusion or score based on explicit evidence and rules.
+- **Notification readiness:** versioned, auditable decision that a property can be notified now, with complete results or explicit unknowns, without waiting indefinitely.
 - **Tracking:** user intent to re-check a known property more frequently.
 
 ## Product principles
@@ -49,11 +50,14 @@ This specification does not authorize live scraping, external API setup, product
 2. Discover listing references through an approved adapter.
 3. Capture fetch metadata and the permitted raw representation.
 4. Run versioned parsing and normalization.
-5. Resolve the listing to a property, create one, or open manual review.
-6. Select canonical field values while retaining provenance/conflicts.
-7. Run only required or stale enrichment/evaluation.
-8. Emit meaningful idempotent events.
-9. Notify only when policy says the property is sufficiently processed and the event has not already been reported.
+5. Resolve identity safely enough to create/link a canonical property, or block for review.
+6. Search approved sources for complementary listings about that property and ingest them through the same evidence pipeline.
+7. Merge canonical field values while retaining provenance/conflicts.
+8. Run required high-priority enrichment and evaluation.
+9. Apply a versioned notification-readiness policy and maximum readiness deadline.
+10. Emit meaningful idempotent events and notify when readiness permits and the event has not already been reported.
+
+Complementary collection and enrichment are bounded. A failed optional provider cannot delay a new-property notification forever: the readiness policy may produce `READY_WITH_UNKNOWNS` after its configured deadline, while surfacing timed-out, unknown, unverified, and conflicting items. Unsafe identity ambiguity remains separately blocked for review.
 
 ### Track and review
 
@@ -72,4 +76,3 @@ Discovery and tracking are separate workflows that share ingestion. `TRACKING` p
 ## Eventual acceptance
 
 Homesearch succeeds when approved sources can be ingested safely; source history can be reconstructed; false property merges are prevented; canonical fields retain provenance; evaluations and events are explainable/versioned; each meaningful event is notified at most as policy permits; tracking decisions are secure; and run/health records show that the monitor is operating even when no property qualifies.
-

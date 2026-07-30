@@ -7,7 +7,7 @@ Read with [Product specification](../product-spec.md), [Architecture](../archite
 - Modular boundaries and typed interfaces.
 - Deterministic, replayable normalization where practical.
 - Source-isolated adapters and tests.
-- PostgreSQL schema migrations and documented configuration.
+- Migration-ready schema/persistence boundaries and documented configuration.
 - Idempotent writes/jobs with safe retries, backoff, jitter, timeout, and overlap prevention.
 - Degraded operation when one source/provider fails.
 - Parser drift/source health detection.
@@ -25,7 +25,11 @@ Read with [Product specification](../product-spec.md), [Architecture](../archite
 
 ## Portability and recoverability
 
-- PostgreSQL is the production relational target; SQLite must not mask PostgreSQL behavior.
+- Gate A must decide the local-development database, early/MVP persistence, production relational target, and migration path as one explicit database strategy.
+- PostgreSQL is the likely/desired long-term production target, with PostGIS a possible future benefit, but this Phase 0 review does not select it.
+- SQLite is not the permanent production design. It may be useful for isolated tests, local tooling, prototypes, exports, or temporary development workflows.
+- Persistence/business logic must not depend on SQLite-specific behavior. SQLite-only tests must not hide differences in concurrency, types, constraints, transactions, migrations, or geospatial behavior.
+- Domain/schema design remains PostgreSQL-compatible and migration-ready regardless of the early/local choice.
 - Versioned migrations, logical backups, restoration drills, and portable exports.
 - Provider-neutral raw object references/manifests with checksums.
 - Secrets and infrastructure configuration separated from data.
@@ -51,7 +55,7 @@ Read with [Product specification](../product-spec.md), [Architecture](../archite
 - evaluation rules and unknown handling;
 - notification/event/delivery deduplication;
 - action expiry, tamper, replay, authorization, GET safety, and log redaction;
-- PostgreSQL transactions, concurrency, migrations, and upgrade paths;
+- selected-store migrations/upgrade paths plus production-target compatibility tests for transactions, concurrency, types, constraints, and geospatial behavior where relevant;
 - provider failure, staleness, precision, and quota behavior;
 - observation replay and projection rebuilding; and
 - backup/restore verification before production.
@@ -74,12 +78,13 @@ Read with [Product specification](../product-spec.md), [Architecture](../archite
 |---|---|---|
 | Runtime | Python is a strong provisional fit | Typing, async/browser tooling, deployment, maintainer preference |
 | Web/API | Lightweight typed API | Select with runtime decision |
-| Database access | PostgreSQL-compatible explicit migrations | ORM/query builder/direct SQL and provenance ergonomics |
+| Database strategy | Open until Gate A; PostgreSQL is the likely long-term target | Local development store, early/MVP persistence, production relational target, migration path, and when target-database integration tests become mandatory |
+| Database access | Provider-neutral domain boundaries and explicit migration path | ORM/query builder/direct SQL, provenance ergonomics, and how early/local choices remain PostgreSQL-compatible |
 | Migrations | Versioned and CI-tested | Tool and forward-repair/rollback policy |
 | IDs/time | Opaque application IDs and UTC instants | UUID/ULID choice and source date precision |
 | Scheduler/queue | Database-backed jobs first | Concurrency, retries, host behavior, measured load |
-| PostgreSQL host | Portable managed or self-hosted | Region, cost, backup, extensions, egress, sleep behavior |
-| PostGIS | Potentially valuable, isolated if used | Query value, host support, export fallback |
+| PostgreSQL/PostGIS | Likely long-term option, not selected in Phase 0 | Production need, geospatial value, local/MVP timing, host support, migration and export fallback |
+| PostgreSQL host | Decide only if PostgreSQL is selected | Region, cost, backup, extensions, egress, sleep behavior |
 | Raw storage | DB metadata plus optional portable blobs | Source legality, capture mode, retention, encryption, lifecycle, cost |
 | Geocoder | Adapter/cache, official/open preference | Japanese quality, terms, quota, cost, precision, redistribution |
 | Amenity provider | Bounded cached adapter | Coverage, categories, current business hours, terms, quota |
@@ -97,4 +102,3 @@ Read with [Product specification](../product-spec.md), [Architecture](../archite
 | Photo evidence | Supporting evidence only if approved | Copyright, retention, hashes/model, explainability, cost |
 
 Do not invent provider availability or current pricing. Research these only in the roadmap phase that needs them and record approved durable choices as ADRs.
-

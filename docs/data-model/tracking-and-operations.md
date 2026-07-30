@@ -22,13 +22,37 @@ Immutable semantic change.
 
 Kinds include discovery, listing added, price/status changes, ended/sold/disappeared/relisted, address/identity evidence improvement, completion/media/canonical conflict/enrichment/evaluation changes, and tracking transition.
 
+### `NotificationReadinessPolicyVersion`
+
+Immutable definition of when a property/event is eligible for notification.
+
+**Fields:** stable policy ID/version/effective period, applicable notification/event type, identity threshold/blocking conflicts, minimum basic facts, required source-link/provenance rules, location-precision handling, high-priority and optional enrichment requirements, accepted terminal states per requirement, maximum wait duration/deadline rule, evaluation requirement, and behavior for timeout/failure/unknown.
+
+The policy is configuration, not hidden worker logic.
+
+### `NotificationReadinessAssessment`
+
+Versioned, auditable decision for a property and triggering event.
+
+**Fields:** property/event, policy version, outcome (`NOT_READY`, `READY_COMPLETE`, `READY_WITH_UNKNOWNS`, `BLOCKED_IDENTITY_REVIEW`, or approved equivalents), trigger/first-eligible time, deadline, evaluated time, identity decision, canonical projection and evaluation references, input fingerprint, major conflicts, blocking reasons, superseded-by assessment, and resulting notification when ready.
+
+`READY_COMPLETE` means complete relative to that policy—not that all future data is known. A passed deadline cannot override unsafe identity ambiguity.
+
+### `NotificationReadinessRequirementResult`
+
+Per-policy-requirement explanation.
+
+**Fields:** assessment, requirement key/type, outcome (`SATISFIED`, `PENDING`, `UNKNOWN_ALLOWED`, `NOT_VERIFIED_ALLOWED`, `TIMED_OUT_ALLOWED`, `BLOCKED`, or approved equivalents), evidence/enrichment/job references, provider/error category, first/last attempt and terminal time, deadline contribution, and human-readable reason code.
+
+This makes optional-provider failure terminal and visible instead of indefinitely pending.
+
 ### `Notification`
 
 Immutable notification decision/payload snapshot.
 
-**Fields:** property, user/destination, channel/type, events, policy/template/payload versions, reproducible rendered content, locale, created time, deduplication fingerprint, and suppression status/reason.
+**Fields:** property, user/destination, channel/type, events, readiness assessment, notification policy/template/payload versions, reproducible rendered content, locale, created time, deduplication fingerprint, and suppression status/reason.
 
-The snapshot preserves known, unknown, conflicting, and recommended information at creation.
+The snapshot preserves verified facts, source claims, conflicts, unknown/not-yet-checked items, timeout/unavailable reasons, and recommendation at creation.
 
 ### `NotificationDelivery`
 
@@ -94,6 +118,8 @@ The physical schema should enforce where possible:
 - non-overlapping current tracking state per user/property;
 - non-overlapping canonical selection periods per property/field;
 - unique semantic event fingerprint;
+- one readiness assessment per property/event/policy/input fingerprint;
+- notification creation requires a ready assessment under its referenced policy;
 - unique notification per policy/destination/fingerprint;
 - unique provider delivery idempotency key;
 - unique token hash and atomic single use;
@@ -114,6 +140,7 @@ Likely indexes:
 - open review cases;
 - due jobs/state/lease;
 - property events/time/kind/fingerprint; and
+- readiness outcome/deadline/policy/property;
 - notification delivery state.
 
 Partitioning observations/events is premature until measured and must preserve export/restore simplicity.
@@ -122,7 +149,7 @@ Partitioning observations/events is premature until measured and must preserve e
 
 Portable export includes:
 
-- PostgreSQL schema version and logical data;
+- selected-store schema version and logical data, plus the documented migration-ready path to the likely PostgreSQL target;
 - raw-object manifest with checksums/sizes/retention/logical keys and permitted objects;
 - safe configuration versions without secrets;
 - parser/algorithm/rule manifest;
@@ -136,10 +163,10 @@ Raw retention, destination privacy, legal deletion, and notification-payload ret
 ## Schema ADR questions
 
 1. UUID/ULID/internal ID and time conventions.
-2. ORM/query/transaction layer and migration tool.
+2. Gate A local/MVP/production database strategy, migration path, ORM/query/transaction layer, and migration tool.
 3. Database enum versus checked text/reference tables.
 4. Typed field tables versus typed/versioned JSON hybrid.
-5. PostGIS and portable fallback.
+5. PostgreSQL/PostGIS adoption timing and portable fallback.
 6. Which facts need bitemporal effective time.
 7. Parsed-fact physical shape/indexing.
 8. External-ID reuse/relisting semantics per source.
@@ -149,4 +176,3 @@ Raw retention, destination privacy, legal deletion, and notification-payload ret
 12. Destination and notification-payload privacy.
 13. Confidence representation/calibration.
 14. Media/floor-plan evidence representation, subject to approval.
-

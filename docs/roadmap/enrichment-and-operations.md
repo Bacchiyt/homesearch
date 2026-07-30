@@ -2,6 +2,10 @@
 
 Read with [Roadmap](../roadmap.md). Every phase preserves its cross-phase rules and gates.
 
+Each enrichment phase must expose completed, unknown/not-verified, failed/unavailable, and timed-out outcomes to the versioned notification-readiness policy. If a capability is configured as high-priority, it participates in readiness only according to that policy and its maximum deadline; optional provider failure cannot delay notification indefinitely.
+
+The readiness contract and fake-provider behavior are established in Phase 7. Integrating a real enrichment capability with readiness therefore depends on Phase 7 even when the capability's core model can proceed under the phase-specific dependencies below.
+
 ## Phase 8 — Location resolution foundation
 
 **Goal:** select the best-supported property location without overstating precision.
@@ -99,4 +103,3 @@ Read with [Roadmap](../roadmap.md). Every phase preserves its cross-phase rules 
 **Dependencies:** only approved initial-production features, generally Phases 1–7 and 13 plus selected enrichment; Gate D mandatory.
 
 **Intentionally deferred:** Kubernetes, unnecessary microservices, active-active, expensive queues, unmeasured scaling.
-

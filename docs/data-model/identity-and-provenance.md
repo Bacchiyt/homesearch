@@ -104,6 +104,24 @@ Complete relevant candidate set at selection time with rank, authority, freshnes
 
 Optional denormalized current table/view with projection version/rebuild time. It is reproducible and never the only copy.
 
+## Property marketing-claim aggregation
+
+### `MarketingConceptDefinition`
+
+Versioned normalization vocabulary for a concept key, display label, aliases/synonyms, language, and effective period. For example, `SIC`/`シューズインクローク` and `パントリー`/`食品庫` may normalize together while exact source text remains in listing evidence.
+
+This is a controlled domain vocabulary, not an NLP implementation commitment.
+
+### `PropertyMarketingClaimAggregate`
+
+Rebuildable historical projection of repeated selling-point emphasis across listings linked to one property.
+
+**Fields:** property, normalized concept, observed raw variants, distinct mention-listing count, relevant-listing denominator, supporting source/listing/claim references, first/last seen, calculated time, relevant-listing policy/version, alias/extraction/aggregation versions, and input-set fingerprint.
+
+The denominator policy defines whether “current/relevant” includes active listings only, recently ended listings, official listings, or another explicit set. Repeated observations of one listing count once for a current snapshot. Historical projections retain changing counts and emphasis over time.
+
+The aggregate can render “吹抜け — 4 of 6 current/relevant listings” with source names and dates. It remains marketing evidence and never automatically creates a `VERIFIED_FEATURE`, canonical fact, or positive evaluation.
+
 ## Price, status, and publication
 
 ### Price
@@ -123,4 +141,3 @@ Failed requests or one absent result cannot establish disappearance.
 ### `PublicationFact`
 
 Preserves publication, information-provision, update, next-update, and validity dates separately, with raw representation, parsed precision, source fact, and parser version.
-

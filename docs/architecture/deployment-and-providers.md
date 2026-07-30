@@ -29,7 +29,7 @@ When approved:
 - one web process for confirmations/health;
 - one or more instances of the same worker process;
 - one scheduler process or platform schedule invoking scheduler logic;
-- PostgreSQL;
+- the Gate A-selected production relational store;
 - optional object storage; and
 - approved email/enrichment providers.
 
@@ -37,8 +37,8 @@ Processes may share one image/platform. A dedicated broker is intentionally abse
 
 ## Portability
 
-- Use standard migrations and isolate optional PostgreSQL extensions.
-- Keep state in PostgreSQL/object storage, never ephemeral local disk.
+- Use standard migrations, retain a documented path to the likely PostgreSQL target, and isolate optional extensions.
+- Keep durable state in the selected relational store/object storage, never ephemeral local disk.
 - Retain object checksum/logical metadata, not only provider URLs.
 - Use provider ports and neutral domain result types.
 - Separate infrastructure and secrets.
@@ -51,7 +51,7 @@ Processes may share one image/platform. A dedicated broker is intentionally abse
 Before data becomes valuable:
 
 - define RPO/RTO;
-- automate encrypted PostgreSQL backups;
+- automate encrypted backups appropriate to the selected production relational store;
 - keep an affordable recoverable copy outside the primary failure domain;
 - export object manifests and verify checksums;
 - document configuration/secret reconstruction;
@@ -66,7 +66,7 @@ No provider or price is selected.
 
 | Capability | Architectural rule | Research needed |
 |---|---|---|
-| Database | Standard PostgreSQL, migrations, logical export | Japan region, backup, cost, egress, extensions, scaling/sleep |
+| Database | Gate A selects local/MVP/production/migration strategy; PostgreSQL is the likely production target | Japan region, backup, cost, egress, extensions/PostGIS, scaling/sleep, migration timing |
 | Email | Transactional adapter with idempotency/webhook option | Japanese delivery, sender requirements, privacy, cost |
 | Geocoding | Cached inputs/results with precision/terms | Japanese quality, official/open options, quota, redistribution |
 | POI/business | Bounded categories and area/input cache | Coverage, categories, current hours, terms, cost |
@@ -104,4 +104,3 @@ Extraction preserves stable job/event contracts and transactional handoff. Micro
 - Provider-derived data may become stale or have display/redistribution restrictions.
 
 Treat these as source assessments, experiments, ADRs, and roadmap gates—not hidden assumptions.
-

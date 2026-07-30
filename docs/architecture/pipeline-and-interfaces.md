@@ -35,38 +35,36 @@ Separate interfaces are required because freshness, evidence, and licensing sema
 
 ### Persistence
 
-Repositories express domain/application needs without leaking ORM objects. Multi-step operations use explicit transactions. PostgreSQL-specific optimizations remain inside adapters and are not required for portable export semantics.
+Repositories express domain/application needs without leaking ORM objects. Multi-step operations use explicit transactions. Store-specific optimizations remain inside adapters and cannot become domain requirements. The schema and persistence contract remain PostgreSQL-compatible/migration-ready even if Gate A permits SQLite for a bounded early/local use.
 
-## Discovery flow
+## New-property discovery and readiness flow
 
 ```mermaid
-sequenceDiagram
-    participant S as Scheduler
-    participant W as Discovery worker
-    participant A as Source adapter
-    participant O as Observation ingestion
-    participant P as Parser
-    participant C as Canonicalization
-    participant E as Event policy
-    participant N as Notification worker
-
-    S->>W: lease due source/search job
-    W->>A: discover(configured search, cursor)
-    A-->>W: listing references + evidence
-    loop each reference
-        W->>O: fetch/ingest reference
-        O-->>W: immutable observation ID
-        W->>P: parse(observation ID, parser version)
-        P-->>C: structured source facts
-        C->>C: normalize, resolve identity, merge provenance
-        C-->>E: candidate changes
-        E->>E: create idempotent semantic events
-        E-->>N: eligible notification work
-    end
-    W->>W: finalize source run metrics and cursor
+flowchart TD
+    D["Discover configured source listing"] --> O["Ingest immutable observation"]
+    O --> P["Parse and normalize source facts"]
+    P --> I{"Identity safe enough?"}
+    I -->|"Ambiguous/conflicting"| B["BLOCKED_IDENTITY_REVIEW"]
+    I -->|"Yes"| C["Create/link canonical Property"]
+    C --> X["Bounded search for complementary listings"]
+    X --> O2["Ingest complementary evidence through same pipeline"]
+    O2 --> M["Canonical merge with provenance/conflicts"]
+    C --> M
+    M --> H["Required high-priority enrichment"]
+    H --> E["Evaluate available evidence"]
+    E --> R{"Versioned readiness policy"}
+    R -->|"Pending before deadline"| N["NOT_READY"]
+    R -->|"Requirements complete"| RC["READY_COMPLETE"]
+    R -->|"Allowed unknown/timeout at deadline"| RU["READY_WITH_UNKNOWNS"]
+    RC --> Q["Create idempotent event/notification work"]
+    RU --> Q
 ```
 
-Commit an observation before acknowledging downstream work. Reprocessing the same input/version must not duplicate facts, identity decisions, candidates, events, or notifications.
+Complementary discovery is source-policy-aware and bounded; its findings re-enter the ordinary observation pipeline. It cannot recursively delay notification forever. Commit each observation before acknowledging downstream work. Reprocessing the same input/version must not duplicate facts, identity decisions, candidates, aggregations, readiness assessments, events, or notifications.
+
+The readiness evaluator consumes a policy version, canonical projection, identity status, evaluation, complementary-listing status, and configured high-priority enrichment outcomes. It schedules re-evaluation when inputs change and a deadline wake-up at the policy's maximum wait.
+
+An optional provider failure becomes an explicit terminal requirement result—such as unknown, not verified, unavailable, or timed out—rather than an indefinitely pending job. The readiness policy decides whether that result permits `READY_WITH_UNKNOWNS`. A deadline never overrides unsafe identity ambiguity.
 
 ## Tracking flow
 
@@ -103,7 +101,7 @@ Raw evidence is not modified. The system records when replay is impossible becau
 
 ## Observation storage
 
-PostgreSQL retains durable metadata, structured source facts, hashes, compliance/retention class, and provenance. An optional blob adapter stores permitted large payloads.
+The relational store selected at Gate A retains durable metadata, structured source facts, hashes, compliance/retention class, and provenance. An optional blob adapter stores permitted large payloads. Its logical schema and export path remain migration-ready for the likely PostgreSQL target.
 
 Object metadata includes application-controlled logical key, checksum, size, media type, encoding/compression, storage adapter/key, encryption/lifecycle state, and expiry. Domain code never constructs vendor-specific URLs.
 
@@ -130,4 +128,3 @@ For each field:
 6. Emit change only when value, confidence, precision, or verification changes materially.
 
 Official sources are not universally authoritative. Current views are rebuildable projections, not the sole record.
-

@@ -80,6 +80,8 @@ Versioned slope, gradient, road width, access difficulty, and flat/hilly evidenc
 
 ## Evaluation
 
+Every high-priority enrichment used by notification readiness must expose a terminal execution/knowledge outcome—completed, explicit unknown/not verified, failed/unavailable, or timed out—with provider/version, attempts, last error category, and terminal time. The readiness assessment references these records; it does not reinterpret a failed lookup as a negative fact.
+
 ### `EvaluationProfile` and `EvaluationProfileVersion`
 
 Stable profile plus immutable hard filters, preferences, thresholds, weights, destinations, evidence sufficiency, and label policy.
@@ -112,4 +114,3 @@ Binds a criterion to field values, observations, permitted media/floor plans, en
 **Fields:** criterion result, evidence reference/type, role (`SUPPORTS`, `CONFLICTS`, `MISSING_REQUIRED`), contribution, captured version, and explanation.
 
 Marketing copy alone cannot pass verified natural-light or gym criteria.
-

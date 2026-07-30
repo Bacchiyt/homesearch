@@ -8,8 +8,10 @@ Read with [Architecture](../architecture.md) and [Tracking/notification requirem
 - listing detail fetch;
 - observation parse/reparse;
 - identity/canonicalization;
+- complementary-listing collection;
 - enrichment by capability;
 - evaluation;
+- notification-readiness evaluation and deadline wake-up;
 - tracking selection/fetch;
 - event classification;
 - notification render/delivery;
@@ -28,7 +30,7 @@ Each job has:
 - parent run/job and correlation IDs; and
 - optional source/provider rate bucket.
 
-PostgreSQL row leasing/advisory coordination is the provisional starting point and requires an ADR/prototype. A queue can replace the application job adapter if measured concurrency or hosting semantics require it.
+Database-backed leasing is one provisional low-cost option and requires the Gate A persistence decision plus an ADR/prototype. SQLite locking/concurrency must not be assumed equivalent to the production target. A queue can replace the application job adapter if selected-store or hosting semantics require it.
 
 ## Non-overlap and idempotency
 
@@ -60,6 +62,8 @@ Source/provider policy defines maximum concurrency, minimum interval, request bu
 
 Retry only retryable categories with bounded backoff/jitter. Quarantine exhausted work for inspection/replay. Never convert provider failure into a negative domain result, mark disappearance from a failed run, or let one provider halt unrelated work.
 
+For notification readiness, exhausted or deadline-crossing enrichment work records an explicit terminal requirement result. Optional-provider failure cannot remain silently pending after the configured deadline; whether it permits `READY_WITH_UNKNOWNS` is a versioned policy decision.
+
 ## Observability
 
 Structured logs use correlation fields such as `run_id`, `job_id`, `source_id`, `search_config_id`, `listing_id`, `property_id`, `observation_id`, version, attempt, duration, and outcome. Redact credentials, action tokens, bodies, personal destinations, and unnecessary query strings.
@@ -74,6 +78,7 @@ Minimum future metrics/views:
 - identity decision distribution and review backlog;
 - canonical conflicts;
 - enrichment success/cache hit/staleness;
+- notification-readiness outcomes, pending deadlines, timed-out requirements, and identity-review blocks;
 - event/notification/delivery counts;
 - overdue/retrying/dead jobs;
 - storage/database growth; and
@@ -103,7 +108,7 @@ No real recipient, credential, API key, token, or private secret-bearing endpoin
 - contract tests for all adapters;
 - legally appropriate parser fixtures and versioned golden results;
 - property-based idempotency/normalization tests;
-- PostgreSQL integration tests for constraints, locking, leasing, transactions, and migrations;
+- integration tests against the Gate A-selected store plus PostgreSQL-compatibility/target tests for constraints, types, locking, leasing, transactions, migrations, and geospatial behavior where relevant;
 - observation-to-projection replay;
 - false-positive identity suites;
 - provider fakes for failure/staleness/precision/quota;
@@ -111,5 +116,4 @@ No real recipient, credential, API key, token, or private secret-bearing endpoin
 - action expiry/tamper/replay/GET-safety/log-redaction security tests; and
 - backup/restore drills.
 
-SQLite is not a substitute for PostgreSQL behavior involving constraints, concurrency, JSON, timestamps, locking, or migrations.
-
+SQLite may support isolated tests, tools, prototypes, exports, or temporary local workflows. It is not permanent production and cannot be the sole behavioral test when concurrency, types, constraints, transactions, migrations, JSON/time semantics, or geospatial behavior may differ from the likely PostgreSQL target.

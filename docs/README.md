@@ -23,10 +23,11 @@ Read these short entry points for any major task:
 |---|---|
 | Source discovery, access assessment, parsing, or raw capture | [Source and ingestion requirements](product/source-and-ingestion.md), [Pipeline and interfaces](architecture/pipeline-and-interfaces.md), [Ingestion model](data-model/ingestion.md), [Roadmap: foundation and ingestion](roadmap/foundation-and-ingestion.md) |
 | Property identity, deduplication, normalization, canonical merge, or provenance | [Property and history requirements](product/property-and-history.md), [Pipeline and interfaces](architecture/pipeline-and-interfaces.md), [Identity and provenance model](data-model/identity-and-provenance.md), [Roadmap: domain and tracking](roadmap/domain-and-tracking.md) |
+| Marketing headlines, selling-point claims, aliases, or property-level claim aggregation | [Property and history requirements](product/property-and-history.md), [Ingestion model](data-model/ingestion.md), [Identity and provenance model](data-model/identity-and-provenance.md), [Roadmap: domain and tracking](roadmap/domain-and-tracking.md) |
 | Location, amenities, gym, hazards, transport, terrain, or layout evaluation | [Enrichment and evaluation requirements](product/enrichment-and-evaluation.md), [Provider and deployment architecture](architecture/deployment-and-providers.md), [Enrichment and evaluation model](data-model/enrichment-and-evaluation.md), [Roadmap: enrichment and operations](roadmap/enrichment-and-operations.md) |
-| Tracking, events, notifications, secure actions, reporting, or manual review | [Tracking and reporting requirements](product/tracking-notifications-and-reporting.md), [Jobs and operations](architecture/jobs-and-operations.md), [Tracking and operations model](data-model/tracking-and-operations.md), [Roadmap: domain and tracking](roadmap/domain-and-tracking.md) |
+| Notification readiness, deadlines, events, delivery, secure actions, tracking, reporting, or manual review | [Tracking and reporting requirements](product/tracking-notifications-and-reporting.md), [Pipeline and interfaces](architecture/pipeline-and-interfaces.md), [Jobs and operations](architecture/jobs-and-operations.md), [Tracking and operations model](data-model/tracking-and-operations.md), [Roadmap: domain and tracking](roadmap/domain-and-tracking.md) |
 | Scheduler, jobs, observability, failure handling, testing, backup, deployment, portability, or cost | [Quality and open decisions](product/quality-and-decisions.md), [Jobs and operations](architecture/jobs-and-operations.md), [Provider and deployment architecture](architecture/deployment-and-providers.md), [Roadmap](roadmap.md), [Roadmap: enrichment and operations](roadmap/enrichment-and-operations.md) |
-| Schema or migration design | [Data model](data-model.md) plus the domain-specific model file, [Quality and open decisions](product/quality-and-decisions.md), and the applicable roadmap phase |
+| Database strategy, schema, persistence, or migrations | [Quality and open decisions](product/quality-and-decisions.md), [Architecture](architecture.md), [Data model](data-model.md), and [Roadmap: foundation and ingestion](roadmap/foundation-and-ingestion.md) |
 | Durable technology/provider decision | [Quality and open decisions](product/quality-and-decisions.md), [Provider and deployment architecture](architecture/deployment-and-providers.md), and the ADR backlog in [Roadmap](roadmap.md) |
 
 ## Document tree
@@ -66,4 +67,3 @@ docs/
 - Data-model files define conceptual entities, relationships, history, and constraints; they are not final SQL.
 - Roadmap files define authorization gates, implementation order, tests, and completion criteria.
 - ADRs, once introduced, record approved durable choices without rewriting historical reasoning.
-
